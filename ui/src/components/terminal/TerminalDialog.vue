@@ -13,6 +13,7 @@
     </v-tooltip>
     <v-dialog
       v-model="show"
+      :fullscreen="fullSize"
       max-width="1024px"
     >
       <v-card>
@@ -28,8 +29,17 @@
             <v-icon>close</v-icon>
           </v-btn>
           <v-toolbar-title>Terminal</v-toolbar-title>
-
           <v-spacer />
+          <v-btn
+            v-if="isAuthenticated"
+            icon
+            dark
+            @click="reload"
+          >
+            <v-icon>
+              mdi-window-maximize
+            </v-icon>
+          </v-btn>
         </v-toolbar>
 
         <v-card
@@ -98,6 +108,8 @@ export default {
   data() {
     return {
       username: '',
+      fullSize: false,
+      isAuthenticated: false,
       passwd: '',
       showLoginForm: true,
       valid: true,
@@ -159,12 +171,46 @@ export default {
 
     close() {
       this.$store.dispatch('modals/toggleTerminal', '');
+      this.fullSize = false;
+      this.isAuthenticated = false;
+    },
+
+    async reload() {
+      if (this.xterm) await this.xterm.dispose();
+      this.$nextTick().then(async () => {
+        this.fullSize = !this.fullSize;
+        await this.zoom(this.fullSize);
+        this.dialog = !this.dialog;
+        this.$nextTick().then(() => {
+          this.connect();
+        });
+      });
+    },
+
+    async zoom(fullSize) {
+      if (!fullSize) {
+        this.xterm = new Terminal({ // instantiate Terminal
+          cursorBlink: true,
+          fontFamily: 'monospace',
+        });
+      } else {
+        this.xterm = new Terminal({ // fullsize
+          cursorBlink: true,
+          fontFamily: 'monospace',
+          rows: 39,
+          cols: 100,
+        });
+      }
+      this.fitAddon = new FitAddon(); // load fit
+      this.xterm.loadAddon(this.fitAddon); // adjust screen in container
+      if (this.xterm.element) {
+        this.xterm.reset();
+      }
     },
 
     connect() {
       let protocolConnectionURL = '';
-
-      if (!this.$refs.form.validate(true)) {
+      if (!this.isAuthenticated && !this.$refs.form.validate(true)) {
         return;
       }
 
@@ -199,6 +245,8 @@ export default {
         this.attachAddon = new AttachAddon(this.ws);
         this.xterm.loadAddon(this.attachAddon);
       };
+
+      this.isAuthenticated = true;
 
       this.ws.onclose = () => {
         this.attachAddon.dispose();
