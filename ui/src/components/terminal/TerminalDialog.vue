@@ -111,6 +111,8 @@ export default {
       fullSize: false,
       isAuthenticated: false,
       passwd: '',
+      defaultCols: 0,
+      dafaultRows: 0,
       showLoginForm: true,
       valid: true,
       rules: {
@@ -158,7 +160,8 @@ export default {
         cursorBlink: true,
         fontFamily: 'monospace',
       });
-
+      this.defaultCols = this.xterm.cols;
+      this.defaultRows = this.xterm.rows;
       this.fitAddon = new FitAddon();
       this.xterm.loadAddon(this.fitAddon);
 
@@ -169,43 +172,30 @@ export default {
       }
     },
 
-    close() {
+    async close() {
+      if (this.xterm) await this.xterm.dispose();
       this.$store.dispatch('modals/toggleTerminal', '');
       this.fullSize = false;
       this.isAuthenticated = false;
     },
 
     async reload() {
-      if (this.xterm) await this.xterm.dispose();
       this.$nextTick().then(async () => {
         this.fullSize = !this.fullSize;
         await this.zoom(this.fullSize);
-        this.dialog = !this.dialog;
-        this.$nextTick().then(() => {
-          this.connect();
-        });
       });
     },
 
     async zoom(fullSize) {
-      if (!fullSize) {
-        this.xterm = new Terminal({ // instantiate Terminal
-          cursorBlink: true,
-          fontFamily: 'monospace',
-        });
-      } else {
-        this.xterm = new Terminal({ // fullsize
-          cursorBlink: true,
-          fontFamily: 'monospace',
-          rows: 39,
-          cols: 100,
-        });
+      if (fullSize) {
+        await this.xterm.resize(100, 39);
+      } else if (this.isAuthenticated) { // resize to lower again
+        this.xterm.resize(this.defaultCols, this.defaultRows);
       }
-      this.fitAddon = new FitAddon(); // load fit
-      this.xterm.loadAddon(this.fitAddon); // adjust screen in container
-      if (this.xterm.element) {
-        this.xterm.reset();
-      }
+      this.$nextTick().then(() => {
+        this.fitAddon = new FitAddon(); // load fit
+        this.xterm.loadAddon(this.fitAddon); // adjust screen in container
+      });
     },
 
     connect() {
