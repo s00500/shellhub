@@ -3,6 +3,7 @@ package mongo
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -185,15 +186,19 @@ func (s *Store) GetDevice(ctx context.Context, uid models.UID) (*models.Device, 
 }
 
 func (s *Store) DeleteDevice(ctx context.Context, uid models.UID) error {
-	if _, err := s.db.Collection("devices").DeleteOne(ctx, bson.M{"uid": uid}); err != nil {
+	delete, err := s.db.Collection("devices").DeleteOne(ctx, bson.M{"uid": uid})
+	if err != nil {
 		return err
+	}
+	if delete != nil {
+		fmt.Printf("\n Delete device %+v\n", delete)
 	}
 
 	if _, err := s.db.Collection("sessions").DeleteMany(ctx, bson.M{"device_uid": uid}); err != nil {
 		return err
 	}
 
-	_, err := s.db.Collection("connected_devices").DeleteMany(ctx, bson.M{"uid": uid})
+	_, err = s.db.Collection("connected_devices").DeleteMany(ctx, bson.M{"uid": uid})
 	return err
 }
 
@@ -211,13 +216,20 @@ func (s *Store) AddDevice(ctx context.Context, d models.Device, hostname string)
 		"$set": d,
 	}
 	opts := options.Update().SetUpsert(true)
-	_, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": d.UID}, q, opts)
+	add, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": d.UID}, q, opts)
+	if add != nil {
+		fmt.Printf("\n add device %+v", add)
+	}
 	return err
 }
 
 func (s *Store) RenameDevice(ctx context.Context, uid models.UID, name string) error {
-	if _, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"name": name}}); err != nil {
+	rename, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"name": name}})
+	if err != nil {
 		return err
+	}
+	if rename != nil {
+		fmt.Printf("rename device %+v", rename)
 	}
 	return nil
 }
@@ -248,9 +260,12 @@ func (s *Store) UpdateDeviceStatus(ctx context.Context, uid models.UID, online b
 	}
 	device.LastSeen = time.Now()
 	opts := options.Update().SetUpsert(true)
-	_, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": device.UID}, bson.M{"$set": bson.M{"last_seen": device.LastSeen}}, opts)
+	updateDevice, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": device.UID}, bson.M{"$set": bson.M{"last_seen": device.LastSeen}}, opts)
 	if err != nil {
 		return err
+	}
+	if updateDevice != nil {
+		fmt.Printf("\n update device status %+v", updateDevice)
 	}
 
 	cd := &models.ConnectedDevice{
@@ -273,9 +288,12 @@ func (s *Store) UpdatePendingStatus(ctx context.Context, uid models.UID, status 
 	}
 
 	opts := options.Update().SetUpsert(true)
-	_, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": device.UID}, bson.M{"$set": bson.M{"status": status}}, opts)
+	updateDevice, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": device.UID}, bson.M{"$set": bson.M{"status": status}}, opts)
 	if err != nil {
 		return err
+	}
+	if updateDevice != nil {
+		fmt.Printf("\n update device status %+v", updateDevice)
 	}
 	cd := &models.ConnectedDevice{
 		UID:      device.UID,

@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -45,7 +46,10 @@ func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKe
 
 func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest) (*models.DeviceAuthResponse, error) {
 	uid := sha256.Sum256(structhash.Dump(req.DeviceAuth, 1))
-
+	fmt.Printf("\nAuth Request %+v", req)
+	fmt.Printf("\nInfo %+v", req.Info)
+	fmt.Printf("\nDevice Auth %+v", req.DeviceAuth)
+	fmt.Printf("\nuid %s", hex.EncodeToString(uid[:]))
 	device := models.Device{
 		UID:       hex.EncodeToString(uid[:]),
 		Identity:  req.Identity,

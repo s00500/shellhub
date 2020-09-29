@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -159,8 +160,12 @@ var migrations = []migrate.Migration{
 				}
 
 				device.Name = strings.ToLower(device.Name)
-				if _, err = db.Collection("devices").UpdateOne(context.TODO(), bson.M{"uid": device.UID}, bson.M{"$set": bson.M{"name": strings.ToLower(device.Name)}}); err != nil {
+				migration, err := db.Collection("devices").UpdateOne(context.TODO(), bson.M{"uid": device.UID}, bson.M{"$set": bson.M{"name": strings.ToLower(device.Name)}})
+				if err != nil {
 					return err
+				}
+				if migration != nil {
+					fmt.Printf(" migration number 9 %+v", migration)
 				}
 			}
 
