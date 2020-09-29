@@ -3,6 +3,7 @@ package mongo
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -193,7 +194,10 @@ func (s *Store) AddDevice(ctx context.Context, d models.Device) error {
 		"$set": d,
 	}
 	opts := options.Update().SetUpsert(true)
-	_, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": d.UID}, q, opts)
+	add, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": d.UID}, q, opts)
+	if add != nil {
+		fmt.Printf("\n add device %+v", add)
+	}
 	return err
 }
 
