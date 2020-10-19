@@ -26,6 +26,7 @@ RUN go mod download
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/api
 
 RUN go build
+RUN CGO_ENABLED=0 go test -c
 
 # development stage
 FROM base AS development
@@ -39,6 +40,8 @@ RUN go mod download
 
 COPY ./api/entrypoint-dev.sh /entrypoint.sh
 COPY ./.revive.toml /
+COPY  --from=builder /go/src/github.com/shellhub-io/shellhub/api/api.test /api.test 
+
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/api
 

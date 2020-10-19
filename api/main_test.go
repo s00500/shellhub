@@ -11,11 +11,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
-type config struct {
-	MongoHost string `envconfig:"mongo_host" default:"mongo"`
-	MongoPort int    `envconfig:"mongo_port" default:"27017"`
-}
-
 func testAuthUser(e *httpexpect.Expect) (user, token, tenant string) {
 	type Login struct {
 		Username string `form:"username"`
