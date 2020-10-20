@@ -10,7 +10,6 @@ import (
 	"github.com/gavv/httpexpect/v2"
 	"github.com/shellhub-io/shellhub/pkg/models"
 
-	"github.com/kelseyhightower/envconfig"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"github.com/shellhub-io/shellhub/api/apicontext"
@@ -368,10 +367,10 @@ func EchoHandler() http.Handler {
 		e := echo.New()
 		e.Use(middleware.Logger())
 
-		var cfg config
+		/*var cfg config
 		if err := envconfig.Process("api", &cfg); err != nil {
 			panic(err.Error())
-		}
+		}*/
 
 		db := dbtest.DBServer{}
 		defer db.Stop()
