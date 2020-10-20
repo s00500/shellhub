@@ -3,12 +3,20 @@ package main
 import (
 	"net/http"
 	"testing"
-	"time"
+	//"time"
 
 	"fmt"
 
 	"github.com/gavv/httpexpect/v2"
 	"github.com/shellhub-io/shellhub/pkg/models"
+
+	"github.com/kelseyhightower/envconfig"
+	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
+	"github.com/shellhub-io/shellhub/api/apicontext"
+	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
+	"github.com/shellhub-io/shellhub/api/routes"
+	"github.com/shellhub-io/shellhub/api/store/mongo"
 )
 
 func testAuthUser(e *httpexpect.Expect) (user, token, tenant string) {
@@ -72,7 +80,7 @@ func testGetToken(e *httpexpect.Expect, tenant string) {
 		Expect().
 		Status(http.StatusOK)
 }
-func testRenameDevice(e *httpexpect.Expect, rename []string, status []int, uid, token, username string) {
+func testRenameDevice(e *httpexpect.Expect, rename []string, status []int, uid, token, username, tenant string) {
 
 	for i, j := range rename {
 		renameReq := map[string]interface{}{
@@ -81,7 +89,7 @@ func testRenameDevice(e *httpexpect.Expect, rename []string, status []int, uid, 
 
 		e.PATCH(fmt.Sprintf("/api/devices/%s", uid)).
 			WithHeader("Authorization", "Bearer "+token).
-			WithHeader("X-Tenant-ID", "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx").
+			WithHeader("X-Tenant-ID", tenant).
 			WithHeader("X-Username", username).
 			WithJSON(renameReq).
 			Expect().
@@ -89,22 +97,22 @@ func testRenameDevice(e *httpexpect.Expect, rename []string, status []int, uid, 
 
 	}
 }
-func testUpdatePendingStatus(e *httpexpect.Expect, pendingArray []string, uid, token, username string) {
+func testUpdatePendingStatus(e *httpexpect.Expect, pendingArray []string, uid, token, username, tenant string) {
 	for _, j := range pendingArray {
 
 		e.PATCH(fmt.Sprintf("/api/devices/%s/%s", uid, j)).
 			WithHeader("Authorization", "Bearer "+token).
-			WithHeader("X-Tenant-ID", "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx").
+			WithHeader("X-Tenant-ID", tenant).
 			WithHeader("X-Username", username).
 			Expect().
 			Status(http.StatusOK)
 	}
 }
-func testLookupDevice(e *httpexpect.Expect, lookup map[string]string, token, username string) {
+func testLookupDevice(e *httpexpect.Expect, lookup map[string]string, token, username, tenant string) {
 
 	e.GET(fmt.Sprintf("/internal/lookup")).
 		WithHeader("Authorization", "Bearer "+token).
-		WithHeader("X-Tenant-ID", "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx").
+		WithHeader("X-Tenant-ID", tenant).
 		WithHeader("X-Username", username).
 		WithJSON(lookup).
 		Expect().
@@ -148,10 +156,10 @@ func testListSessions(e *httpexpect.Expect, token string, sessionAuth map[string
 		val.Object().ContainsMap(sessionAuth)
 	}
 }
-func testFinishSession(e *httpexpect.Expect, uid_session, token, username string) {
+func testFinishSession(e *httpexpect.Expect, uid_session, token, username, tenant string) {
 	e.POST(fmt.Sprintf("/internal/sessions/%s/finish", uid_session)).
 		WithHeader("Authorization", "Bearer"+token).
-		WithHeader("X-Tenant-ID", "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx").
+		WithHeader("X-Tenant-ID", tenant).
 		WithHeader("X-Username", username).
 		Expect().
 		Status(http.StatusOK)
@@ -165,22 +173,22 @@ func testStats(e *httpexpect.Expect, token string) {
 		JSON().Object()
 }
 
-func testDeleteDevice(e *httpexpect.Expect, uid, token, username string) {
+func testDeleteDevice(e *httpexpect.Expect, uid, token, username, tenant string) {
 	e.DELETE(fmt.Sprintf("/api/devices/%s", uid)).
 		WithHeader("Authorization", "Bearer "+token).
-		WithHeader("X-Tenant-ID", "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx").
+		WithHeader("X-Tenant-ID", tenant).
 		WithHeader("X-Username", "username").
 		Expect().
 		Status(http.StatusOK)
 
 }
 
-func testUpdateUser(e *httpexpect.Expect, forms_array []interface{}, status_array []int, token, username string) {
+func testUpdateUser(e *httpexpect.Expect, forms_array []interface{}, status_array []int, token, username, tenant string) {
 	for i, v := range forms_array {
 		e.PUT("/api/user").
 			WithHeader("Authorization", "Bearer "+token).
-			WithHeader("X-Tenant-ID", "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx").
-			WithHeader("X-Username", "username").
+			WithHeader("X-Tenant-ID", tenant).
+			WithHeader("X-Username", username).
 			WithJSON(v).
 			Expect().
 			Status(status_array[i])
@@ -188,9 +196,29 @@ func testUpdateUser(e *httpexpect.Expect, forms_array []interface{}, status_arra
 
 }
 
+func testUpdateUserSecurity(e *httpexpect.Expect, status map[string]bool, token, tenant, username string) {
+	e.PUT("api/user/security").
+		WithHeader("Authorization", "Bearer "+token).
+		WithHeader("X-Tenant-ID", tenant).
+		WithHeader("X-Username", username).
+		WithJSON(status).
+		Expect().
+		Status(http.StatusOK)
+
+}
+
+func GetUserSecurity(e *httpexpect.Expect, token, tenant, username string) {
+	e.PUT("api/user/security").
+		WithHeader("Authorization", "Bearer "+token).
+		WithHeader("X-Tenant-ID", tenant).
+		WithHeader("X-Username", username).
+		Expect().
+		Status(http.StatusOK)
+}
+
 func TestEchoClient(t *testing.T) {
 
-	e := httpexpect.WithConfig(httpexpect.Config{
+	/*	e := httpexpect.WithConfig(httpexpect.Config{
 		// prepend this url to all requests
 		BaseURL: "http://api:8080/",
 
@@ -208,8 +236,21 @@ func TestEchoClient(t *testing.T) {
 			httpexpect.NewCurlPrinter(t),
 			httpexpect.NewDebugPrinter(t, true),
 		},
+	})*/
+
+	handler := EchoHandler()
+
+	e := httpexpect.WithConfig(httpexpect.Config{
+		Client: &http.Client{
+			Transport: httpexpect.NewBinder(handler),
+			Jar:       httpexpect.NewJar(),
+		},
+		Reporter: httpexpect.NewAssertReporter(t),
+		Printers: []httpexpect.Printer{
+			httpexpect.NewDebugPrinter(t, true),
+		},
 	})
-	//testAPI(e)
+
 	username, token, tenant := testAuthUser(e)
 
 	authReq := &models.DeviceAuthRequest{
@@ -248,16 +289,16 @@ func TestEchoClient(t *testing.T) {
 	testListDevices(e, device, token, tenant)
 	rename := []string{"@#$%", "mac", "newName", "mac"}
 	status := []int{http.StatusForbidden, http.StatusForbidden, http.StatusOK, http.StatusOK}
-	testRenameDevice(e, rename, status, uid, token, username)
+	testRenameDevice(e, rename, status, uid, token, username, tenant)
 	pendingArray := []string{"unused", "pending", "rejected", "accepted"}
-	testUpdatePendingStatus(e, pendingArray, uid, token, username)
+	testUpdatePendingStatus(e, pendingArray, uid, token, username, tenant)
 	lookup := map[string]string{
 		"domain":     "username",
 		"name":       "mac",
 		"username":   "username",
 		"ip_address": "1.1.1.1",
 	}
-	testLookupDevice(e, lookup, token, username)
+	testLookupDevice(e, lookup, token, username, tenant)
 	testOfflineDevice(e, uid, token)
 
 	session := map[string]interface{}{
@@ -283,9 +324,9 @@ func TestEchoClient(t *testing.T) {
 	testAuthenticateSession(e, uid_session, authenticated)
 	testGetSession(e, uid_session, token, sessionAuth)
 	testListSessions(e, token, sessionAuth)
-	testFinishSession(e, uid_session, token, username)
+	testFinishSession(e, uid_session, token, username, tenant)
 	testStats(e, token)
-	testDeleteDevice(e, uid, token, username)
+	testDeleteDevice(e, uid, token, username, tenant)
 
 	status_array := []int{http.StatusOK, http.StatusOK, http.StatusConflict, http.StatusForbidden}
 	forms_array := []interface{}{
@@ -314,6 +355,74 @@ func TestEchoClient(t *testing.T) {
 			"newPassword":     "new_password",
 		},
 	}
-	testUpdateUser(e, forms_array, status_array, token, username)
+	testUpdateUser(e, forms_array, status_array, token, username, tenant)
+	sessionRecord := map[string]bool{
+		"sessionRecord": true,
+	}
+	testUpdateUserSecurity(e, sessionRecord, token, tenant, username)
 
+}
+
+func EchoHandler() http.Handler {
+	{
+		e := echo.New()
+		e.Use(middleware.Logger())
+
+		var cfg config
+		if err := envconfig.Process("api", &cfg); err != nil {
+			panic(err.Error())
+		}
+
+		db := dbtest.DBServer{}
+		defer db.Stop()
+
+		if err := mongo.ApplyMigrations(db.Client().Database("test")); err != nil {
+			panic(err)
+		}
+
+		e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+			return func(c echo.Context) error {
+				store := mongo.NewStore(db.Client().Database("test"))
+				ctx := apicontext.NewContext(store, c)
+
+				return next(ctx)
+			}
+		})
+
+		publicAPI := e.Group("/api")
+		internalAPI := e.Group("/internal")
+
+		internalAPI.GET(routes.AuthRequestURL, apicontext.Handler(routes.AuthRequest), apicontext.Middleware(routes.AuthMiddleware))
+		publicAPI.POST(routes.AuthDeviceURL, apicontext.Handler(routes.AuthDevice))
+		publicAPI.POST(routes.AuthDeviceURLV2, apicontext.Handler(routes.AuthDevice))
+		publicAPI.POST(routes.AuthUserURL, apicontext.Handler(routes.AuthUser))
+		publicAPI.POST(routes.AuthUserURLV2, apicontext.Handler(routes.AuthUser))
+		publicAPI.GET(routes.AuthUserURLV2, apicontext.Handler(routes.AuthUserInfo))
+		internalAPI.GET(routes.AuthUserTokenURL, apicontext.Handler(routes.AuthGetToken))
+
+		publicAPI.PUT(routes.UpdateUserURL, apicontext.Handler(routes.UpdateUser))
+		publicAPI.PUT(routes.UserSecurityURL, apicontext.Handler(routes.UpdateUserSecurity))
+		publicAPI.GET(routes.UserSecurityURL, apicontext.Handler(routes.GetUserSecurity))
+
+		publicAPI.GET(routes.GetDeviceListURL, apicontext.Handler(routes.GetDeviceList))
+		publicAPI.GET(routes.GetDeviceURL, apicontext.Handler(routes.GetDevice))
+		publicAPI.DELETE(routes.DeleteDeviceURL, apicontext.Handler(routes.DeleteDevice))
+		publicAPI.PATCH(routes.RenameDeviceURL, apicontext.Handler(routes.RenameDevice))
+		internalAPI.POST(routes.OfflineDeviceURL, apicontext.Handler(routes.OfflineDevice))
+		internalAPI.GET(routes.LookupDeviceURL, apicontext.Handler(routes.LookupDevice))
+		publicAPI.PATCH(routes.UpdateStatusURL, apicontext.Handler(routes.UpdatePendingStatus))
+
+		publicAPI.GET(routes.GetSessionsURL, apicontext.Handler(routes.GetSessionList))
+		publicAPI.GET(routes.GetSessionURL, apicontext.Handler(routes.GetSession))
+		internalAPI.PATCH(routes.SetSessionAuthenticatedURL, apicontext.Handler(routes.SetSessionAuthenticated))
+		internalAPI.POST(routes.CreateSessionURL, apicontext.Handler(routes.CreateSession))
+		internalAPI.POST(routes.FinishSessionURL, apicontext.Handler(routes.FinishSession))
+		internalAPI.POST(routes.RecordSessionURL, apicontext.Handler(routes.RecordSession))
+		publicAPI.GET(routes.PlaySessionURL, apicontext.Handler(routes.PlaySession))
+
+		publicAPI.GET(routes.GetStatsURL, apicontext.Handler(routes.GetStats))
+
+		e.Logger.Fatal(e.Start(":8080"))
+		return e
+	}
 }
