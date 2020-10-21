@@ -421,7 +421,6 @@ func EchoHandler() http.Handler {
 
 		publicAPI.GET(routes.GetStatsURL, apicontext.Handler(routes.GetStats))
 
-		e.Logger.Fatal(e.Start(":8080"))
 		return e
 	}
 }
