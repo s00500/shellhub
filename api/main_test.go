@@ -1,24 +1,32 @@
 package main
 
 import (
+	"context"
 	"net/http"
+	"net/http/httptest"
 	"testing"
-	//"time"
+	"time"
 
 	"fmt"
 
 	"github.com/gavv/httpexpect/v2"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	//"go.mongodb.org/mongo-driver/bson"
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"github.com/shellhub-io/shellhub/api/apicontext"
-	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
+	//"github.com/shellhub-io/shellhub/api/pkg/dbtest"
 	"github.com/shellhub-io/shellhub/api/routes"
 	"github.com/shellhub-io/shellhub/api/store/mongo"
+
+	"github.com/kelseyhightower/envconfig"
+	mgo "go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func testAuthUser(e *httpexpect.Expect) (user, token, tenant string) {
+
 	type Login struct {
 		Username string `form:"username"`
 		Password string `form:"password"`
@@ -37,6 +45,7 @@ func testAuthUser(e *httpexpect.Expect) (user, token, tenant string) {
 	token = authUser.Value("token").String().Raw()
 	tenant = authUser.Value("tenant").String().Raw()
 	user = authUser.Value("user").String().Raw()
+	fmt.Println("SAINDO")
 	return user, token, tenant
 }
 func testAuthDevice(e *httpexpect.Expect, authReq models.DeviceAuthRequest, username string) (uid string) {
@@ -217,9 +226,12 @@ func GetUserSecurity(e *httpexpect.Expect, token, tenant, username string) {
 
 func TestEchoClient(t *testing.T) {
 
-	/*	e := httpexpect.WithConfig(httpexpect.Config{
+	handler := EchoHandler()
+	server := httptest.NewServer(handler)
+
+	e := httpexpect.WithConfig(httpexpect.Config{
 		// prepend this url to all requests
-		BaseURL: "http://api:8080/",
+		BaseURL: server.URL,
 
 		// use http.Client with a cookie jar and timeout
 		Client: &http.Client{
@@ -235,11 +247,11 @@ func TestEchoClient(t *testing.T) {
 			httpexpect.NewCurlPrinter(t),
 			httpexpect.NewDebugPrinter(t, true),
 		},
-	})*/
+	})
 
-	handler := EchoHandler()
+	defer server.Close()
 
-	e := httpexpect.WithConfig(httpexpect.Config{
+	/*e := httpexpect.WithConfig(httpexpect.Config{
 		Client: &http.Client{
 			Transport: httpexpect.NewBinder(handler),
 			Jar:       httpexpect.NewJar(),
@@ -248,9 +260,10 @@ func TestEchoClient(t *testing.T) {
 		Printers: []httpexpect.Printer{
 			httpexpect.NewDebugPrinter(t, true),
 		},
-	})
+	})*/
 
 	username, token, tenant := testAuthUser(e)
+	return
 
 	authReq := &models.DeviceAuthRequest{
 		Info: &models.DeviceInfo{
@@ -371,17 +384,30 @@ func EchoHandler() http.Handler {
 		if err := envconfig.Process("api", &cfg); err != nil {
 			panic(err.Error())
 		}*/
+		var cfg config
+		if err := envconfig.Process("api", &cfg); err != nil {
+			panic(err.Error())
+		}
 
-		db := dbtest.DBServer{}
-		defer db.Stop()
+		// Set client options
+		clientOptions := options.Client().ApplyURI(fmt.Sprintf("mongodb://%s:%d", cfg.MongoHost, cfg.MongoPort))
+		// Connect to MongoDB
+		client, err := mgo.Connect(context.TODO(), clientOptions)
+		if err != nil {
+			panic(err)
+		}
 
-		if err := mongo.ApplyMigrations(db.Client().Database("test")); err != nil {
+		err = client.Ping(context.TODO(), nil)
+		if err != nil {
+			panic(err)
+		}
+		if err := mongo.ApplyMigrations(client.Database("main")); err != nil {
 			panic(err)
 		}
 
 		e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 			return func(c echo.Context) error {
-				store := mongo.NewStore(db.Client().Database("test"))
+				store := mongo.NewStore(client.Database("test"))
 				ctx := apicontext.NewContext(store, c)
 
 				return next(ctx)
@@ -390,6 +416,7 @@ func EchoHandler() http.Handler {
 
 		publicAPI := e.Group("/api")
 		internalAPI := e.Group("/internal")
+		fmt.Println("ESTOU NO echo handler")
 
 		internalAPI.GET(routes.AuthRequestURL, apicontext.Handler(routes.AuthRequest), apicontext.Middleware(routes.AuthMiddleware))
 		publicAPI.POST(routes.AuthDeviceURL, apicontext.Handler(routes.AuthDevice))
@@ -420,7 +447,7 @@ func EchoHandler() http.Handler {
 		publicAPI.GET(routes.PlaySessionURL, apicontext.Handler(routes.PlaySession))
 
 		publicAPI.GET(routes.GetStatsURL, apicontext.Handler(routes.GetStats))
-
 		return e
+
 	}
 }

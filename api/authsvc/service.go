@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -106,15 +107,21 @@ func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest)
 }
 
 func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*models.UserAuthResponse, error) {
+	fmt.Printf("\n%+v", req)
+	fmt.Printf("\na")
 	user, err := s.store.GetUserByUsername(ctx, strings.ToLower(req.Username))
 	if err != nil {
+		fmt.Println(err.Error())
+		fmt.Printf("b")
 		user, err = s.store.GetUserByEmail(ctx, strings.ToLower(req.Username))
 		if err != nil {
+			fmt.Printf("c")
 			return nil, err
 		}
 	}
 
 	password := sha256.Sum256([]byte(req.Password))
+	fmt.Printf("d")
 	if user.Password == hex.EncodeToString(password[:]) {
 		token := jwt.NewWithClaims(jwt.SigningMethodRS256, models.UserAuthClaims{
 			Username: user.Username,
@@ -128,10 +135,14 @@ func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*mo
 			},
 		})
 
+		fmt.Printf("e")
+
 		tokenStr, err := token.SignedString(s.privKey)
 		if err != nil {
 			return nil, err
 		}
+
+		fmt.Printf("f")
 
 		return &models.UserAuthResponse{
 			Token:  tokenStr,
@@ -142,6 +153,7 @@ func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*mo
 		}, nil
 	}
 
+	fmt.Printf("g")
 	return nil, errors.New("unauthorized")
 }
 
