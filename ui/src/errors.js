@@ -26,6 +26,13 @@ export default {
       publicKeyCreating: 'creating public key',
       publicKeyEditing: 'editing public key',
       publicKeyDeleting: 'deleting public key',
+      namespaceList: 'namespace list',
+      namespaceCreating: 'creating namespace',
+      namespaceNewMember: 'adding new member',
+      namespaceDelete: 'deleting namespace',
+      namespaceSwitch: 'switching namespace',
+      namespaceEdit: 'editing namespace',
+      namespaceRemoveUser: 'removing user',
     };
 
     Vue.errors = errors;
