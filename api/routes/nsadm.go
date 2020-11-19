@@ -33,6 +33,10 @@ func GetNamespaceList(c apicontext.Context) error {
 		return err
 	}
 
+	for count, namespace := range namespaces {
+		namespaces[count].MemberNames, _ = svc.ListMembers(c.Ctx(), namespace.TenantID)
+	}
+
 	c.Response().Header().Set("X-Total-Count", strconv.Itoa(count))
 
 	return c.JSON(http.StatusOK, namespaces)
@@ -66,6 +70,12 @@ func GetNamespace(c apicontext.Context) error {
 	if err != nil {
 		return err
 	}
+
+	members, err := svc.ListMembers(c.Ctx(), c.Param("id"))
+	if err != nil {
+		return err
+	}
+	namespace.MemberNames = members
 
 	return c.JSON(http.StatusOK, namespace)
 }
