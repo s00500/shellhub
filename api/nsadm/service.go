@@ -21,13 +21,14 @@ var ErrDuplicateID = errors.New("user already member of this namespace")
 var ErrUserOwner = errors.New("cannot remove this user")
 
 type Service interface {
-	ListNamespaces(ctx context.Context, pagination paginator.Query, filterB64 string) ([]models.Namespace, int, error)
+	ListNamespaces(ctx context.Context, pagination paginator.Query, filterB64 string, export bool) ([]models.Namespace, int, error)
 	CreateNamespace(ctx context.Context, namespace *models.Namespace, ownerUsername string) (*models.Namespace, error)
 	GetNamespace(ctx context.Context, namespace string) (*models.Namespace, error)
 	DeleteNamespace(ctx context.Context, namespace, ownerUsername string) error
 	EditNamespace(ctx context.Context, namespace, name, ownerUsername string) (*models.Namespace, error)
 	AddNamespaceUser(ctx context.Context, namespace, username, ownerUsername string) (*models.Namespace, error)
 	RemoveNamespaceUser(ctx context.Context, namespace, username, ownerUsername string) (*models.Namespace, error)
+	ListMembers(ctx context.Context, namespace string) ([]string, error)
 	UpdateDataUserSecurity(ctx context.Context, status bool, tenant string) error
 	GetDataUserSecurity(ctx context.Context, tenant string) (bool, error)
 }
@@ -40,7 +41,7 @@ func NewService(store store.Store) Service {
 	return &service{store}
 }
 
-func (s *service) ListNamespaces(ctx context.Context, pagination paginator.Query, filterB64 string) ([]models.Namespace, int, error) {
+func (s *service) ListNamespaces(ctx context.Context, pagination paginator.Query, filterB64 string, export bool) ([]models.Namespace, int, error) {
 	raw, err := base64.StdEncoding.DecodeString(filterB64)
 	if err != nil {
 		return nil, 0, err
@@ -50,7 +51,8 @@ func (s *service) ListNamespaces(ctx context.Context, pagination paginator.Query
 	if err := json.Unmarshal([]byte(raw), &filter); len(raw) > 0 && err != nil {
 		return nil, 0, err
 	}
-	return s.store.ListNamespaces(ctx, pagination, filter)
+
+	return s.store.ListNamespaces(ctx, pagination, filter, export)
 }
 
 func (s *service) CreateNamespace(ctx context.Context, namespace *models.Namespace, ownerUsername string) (*models.Namespace, error) {
