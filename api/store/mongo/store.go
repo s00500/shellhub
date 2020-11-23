@@ -237,6 +237,7 @@ func (s *Store) LookupDevice(ctx context.Context, namespace, name string) (*mode
 
 	return device, nil
 }
+
 func (s *Store) UpdateDeviceStatus(ctx context.Context, uid models.UID, online bool) error {
 	device := new(models.Device)
 	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"uid": uid}).Decode(&device); err != nil {
@@ -890,6 +891,7 @@ func (s *Store) UpdateUser(ctx context.Context, username, email, currentPassword
 
 	return nil
 }
+
 func (s *Store) UpdateDataUserSecurity(ctx context.Context, sessionRecord bool, tenant string) error {
 	ns, err := s.GetNamespace(ctx, tenant)
 
@@ -1000,45 +1002,9 @@ func buildFilterQuery(filters []models.Filter) ([]bson.M, error) {
 	return queryMatch, nil
 }
 
-func (s *Store) ListUsers(ctx context.Context, pagination paginator.Query, filters []models.Filter, export bool) ([]models.User, int, error) {
+func (s *Store) ListUsers(ctx context.Context, pagination paginator.Query, filters []models.Filter) ([]models.User, int, error) {
 	queryMatch, err := buildFilterQuery(filters)
 	query := []bson.M{}
-	if export {
-		query = []bson.M{
-
-			{
-				"$lookup": bson.M{
-					"from":         "devices",
-					"localField":   "tenant_id",
-					"foreignField": "tenant_id",
-					"as":           "devices",
-				},
-			},
-			{
-				"$lookup": bson.M{
-					"from":         "sessions",
-					"localField":   "devices.uid",
-					"foreignField": "device_uid",
-					"as":           "sessions",
-				},
-			},
-			{
-				"$project": bson.M{
-					"name":      1,
-					"email":     1,
-					"username":  1,
-					"password":  1,
-					"tenant_id": 1,
-					"devices": bson.M{
-						"$size": "$devices",
-					},
-					"sessions": bson.M{
-						"$size": "$sessions",
-					},
-				},
-			},
-		}
-	}
 
 	if len(queryMatch) > 0 {
 		query = append(query, queryMatch...)
@@ -1059,7 +1025,7 @@ func (s *Store) ListUsers(ctx context.Context, pagination paginator.Query, filte
 		return nil, 0, err
 	}
 
-	if pagination.Page != 0 && pagination.PerPage != 0 && !export {
+	if pagination.Page != 0 && pagination.PerPage != 0 {
 		query = append(query, buildPaginationQuery(pagination)...)
 	}
 
@@ -1215,7 +1181,7 @@ func (s *Store) GetNamespace(ctx context.Context, namespace string) (*models.Nam
 	return ns, nil
 }
 
-func (s *Store) ListNamespaces(ctx context.Context, pagination paginator.Query, filters []models.Filter) ([]models.Namespace, int, error) {
+func (s *Store) ListNamespaces(ctx context.Context, pagination paginator.Query, filters []models.Filter, export bool) ([]models.Namespace, int, error) {
 	queryMatch, err := buildFilterQuery(filters)
 	query := []bson.M{
 		{
@@ -1227,6 +1193,42 @@ func (s *Store) ListNamespaces(ctx context.Context, pagination paginator.Query, 
 
 	if len(queryMatch) > 0 {
 		query = append(query, queryMatch...)
+	}
+
+	if export {
+		query = []bson.M{
+
+			{
+				"$lookup": bson.M{
+					"from":         "devices",
+					"localField":   "tenant_id",
+					"foreignField": "tenant_id",
+					"as":           "devices",
+				},
+			},
+			{
+				"$lookup": bson.M{
+					"from":         "sessions",
+					"localField":   "devices.uid",
+					"foreignField": "device_uid",
+					"as":           "sessions",
+				},
+			},
+			{
+				"$project": bson.M{
+					"name":      1,
+					"owner":     1,
+					"members":   1,
+					"tenant_id": 1,
+					"devices": bson.M{
+						"$size": "$devices",
+					},
+					"sessions": bson.M{
+						"$size": "$sessions",
+					},
+				},
+			},
+		}
 	}
 
 	// Only match for the respective tenant if requested
@@ -1246,7 +1248,7 @@ func (s *Store) ListNamespaces(ctx context.Context, pagination paginator.Query, 
 		return nil, 0, err
 	}
 
-	if pagination.Page != 0 && pagination.PerPage != 0 {
+	if pagination.Page != 0 && pagination.PerPage != 0 && !export {
 		query = append(query, buildPaginationQuery(pagination)...)
 	}
 
