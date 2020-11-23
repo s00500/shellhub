@@ -28,6 +28,8 @@ type Service interface {
 	EditNamespace(ctx context.Context, namespace, name, ownerUsername string) (*models.Namespace, error)
 	AddNamespaceUser(ctx context.Context, namespace, username, ownerUsername string) (*models.Namespace, error)
 	RemoveNamespaceUser(ctx context.Context, namespace, username, ownerUsername string) (*models.Namespace, error)
+	UpdateDataUserSecurity(ctx context.Context, status bool, tenant string) error
+	GetDataUserSecurity(ctx context.Context, tenant string) (bool, error)
 }
 
 type service struct {
@@ -148,4 +150,20 @@ func (s *service) RemoveNamespaceUser(ctx context.Context, namespace, username, 
 		return nil, ErrUnauthorized
 	}
 	return nil, ErrNamespaceNotFound
+}
+
+func (s *service) UpdateDataUserSecurity(ctx context.Context, sessionRecord bool, tenant string) error {
+	ns, _ := s.GetNamespace(ctx, tenant)
+	if ns != nil {
+		return s.store.UpdateDataUserSecurity(ctx, sessionRecord, tenant)
+	}
+	return ErrUnauthorized
+}
+
+func (s *service) GetDataUserSecurity(ctx context.Context, tenant string) (bool, error) {
+	ns, _ := s.GetNamespace(ctx, tenant)
+	if ns != nil {
+		return s.store.GetDataUserSecurity(ctx, tenant)
+	}
+	return false, ErrUnauthorized
 }
