@@ -28,7 +28,7 @@ func GetNamespaceList(c apicontext.Context) error {
 		return err
 	}
 
-	namespaces, count, err := svc.ListNamespaces(c.Ctx(), query.Query, query.Filter)
+	namespaces, count, err := svc.ListNamespaces(c.Ctx(), query.Query, query.Filter, false)
 	if err != nil {
 		return err
 	}
