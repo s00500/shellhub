@@ -161,8 +161,12 @@ export default {
       try {
         // load namespaces
         await this.$store.dispatch('namespaces/get', this.tenant);
-      } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.namespaceList);
+      } catch (e) {
+        if (e.response.status === 403) {
+          this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
+        } else {
+          this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.namespaceList);
+        }
       }
     },
 

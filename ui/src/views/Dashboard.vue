@@ -154,9 +154,13 @@ export default {
       await this.$store.dispatch('stats/get');
       await this.$store.dispatch('namespaces/fetch');
       this.showScreenWelcome();
-      this.showNamespaceInstructions();
-    } catch {
-      this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.dashboard);
+    } catch (e) {
+      if (e.response.status === 403) {
+        this.showNamespaceInstructions();
+        this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
+      } else {
+        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.dashboard);
+      }
     }
   },
 
