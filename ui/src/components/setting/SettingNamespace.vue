@@ -301,8 +301,12 @@ export default {
     async getNamespace() {
       try {
         await this.$store.dispatch('namespaces/get', this.tenant);
-      } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.namespaceLoad);
+      } catch (e) {
+        if (e.response.status === 403) {
+          this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
+        } else {
+          this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.namespaceLoad);
+        }
       }
     },
 
