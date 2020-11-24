@@ -50,6 +50,7 @@
 
       <NamespaceMenu
         v-if="hasNamespaces"
+        :in-a-namespace="hasNamespaces"
       />
 
       <v-chip>
@@ -176,6 +177,10 @@ export default {
 
     hasNamespaces() {
       return this.$store.getters['namespaces/getNumberNamespaces'] !== 0;
+    },
+
+    currentInANamespace() {
+      return localStorage.getItem('tenant') !== '';
     },
   },
 

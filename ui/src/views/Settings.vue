@@ -49,6 +49,7 @@ export default {
         {
           title: 'Namespace',
           path: '/settings/namespace-manager',
+          hidden: !this.currentInANamespace,
         },
       ],
     };
@@ -57,6 +58,10 @@ export default {
   computed: {
     visibleItems() {
       return this.items.filter((item) => !item.hidden);
+    },
+
+    currentInANamespace() {
+      return localStorage.getItem('tenant') !== '';
     },
   },
 };

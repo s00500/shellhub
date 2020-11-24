@@ -111,6 +111,13 @@ export default {
     NamespaceAdd,
   },
 
+  props: {
+    inANamespace: {
+      type: Boolean,
+      required: true,
+    },
+  },
+
   data() {
     return {
       model: true,
@@ -153,7 +160,9 @@ export default {
   },
 
   created() {
-    this.getNamespaces();
+    if (this.$props.inANamespace) {
+      this.getNamespaces();
+    }
   },
 
   methods: {

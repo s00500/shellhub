@@ -22,7 +22,7 @@
         <v-card
           outlined
           elevation="1"
-          :disabled="!hasNamespaces"
+          :disabled="!currentInANamespace"
         >
           <v-list-item three-line>
             <v-list-item-content>
@@ -147,6 +147,10 @@ export default {
 
     hasNamespaces() {
       return this.$store.getters['namespaces/getNumberNamespaces'] !== 0;
+    },
+
+    currentInANamespace() {
+      return localStorage.getItem('tenant') !== '';
     },
   },
 
