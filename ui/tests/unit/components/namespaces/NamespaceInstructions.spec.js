@@ -1,6 +1,12 @@
 import Vuex from 'vuex';
-import { shallowMount, createLocalVue } from '@vue/test-utils';
+import { shallowMount, createLocalVue, config } from '@vue/test-utils';
 import NamespaceInstructions from '@/components/namespace/NamespaceInstructions';
+
+config.mocks = {
+  $env: {
+    isHosted: true,
+  },
+};
 
 describe('NamespaceInstructions', () => {
   const localVue = createLocalVue();
