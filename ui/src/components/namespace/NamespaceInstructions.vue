@@ -16,16 +16,24 @@
 
         <v-card-text class="mt-4 mb-0 pb-1">
           <p>
-            The easiest way to configure a namespace is by using the cli
-            script, as follows:
+            In order to use shellhub you need to associate a namespace with your account.
           </p>
-          <p class="caption mb-0">
-            Check the <a
-              :href="'https://shellhub-io.github.io/'"
-              target="_blank"
-            >documentation</a>
-            for more information and alternative install methods.
-          </p>
+          <div
+            v-if="openVersion"
+            id="cli-instructions"
+          >
+            <p>
+              The easiest way to configure a namespace is by using the cli
+              script, as follows:
+            </p>
+            <p class="caption mb-0">
+              Check the <a
+                :href="'https://shellhub-io.github.io/'"
+                target="_blank"
+              >documentation</a>
+              for more information and alternative install methods.
+            </p>
+          </div>
         </v-card-text>
         <v-card-actions>
           <v-spacer />
@@ -35,22 +43,46 @@
           >
             Close
           </v-btn>
+          <v-btn
+            v-if="!openVersion"
+            id="namespace-add"
+            text
+            @click="dialogAdd = !dialogAdd"
+          >
+            Add Namespace
+          </v-btn>
         </v-card-actions>
       </v-card>
+      <NamespaceAdd
+        v-if="!openVersion"
+        :show.sync="dialogAdd"
+      />
     </v-dialog>
   </v-card>
 </template>
 
 <script>
 
+import NamespaceAdd from '@/components/namespace/NamespaceAdd';
+
 export default {
   name: 'NamespaceInstructions',
+
+  components: {
+    NamespaceAdd,
+  },
 
   props: {
     show: {
       type: Boolean,
       required: true,
     },
+  },
+
+  data() {
+    return {
+      dialogAdd: false,
+    };
   },
 
   computed: {
@@ -62,6 +94,10 @@ export default {
       set(value) {
         this.$emit('show', value);
       },
+    },
+
+    openVersion() {
+      return !this.$env.isHosted;
     },
   },
 
