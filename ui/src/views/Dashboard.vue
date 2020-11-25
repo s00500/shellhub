@@ -157,7 +157,6 @@ export default {
   async created() {
     try {
       await this.$store.dispatch('stats/get');
-      await this.$store.dispatch('namespaces/fetch');
       this.showScreenWelcome();
     } catch (e) {
       if (e.response.status === 403) {
