@@ -3,7 +3,7 @@
     <v-dialog
       v-model="showNoNamespace"
       :retain-focus="false"
-      max-width="800px"
+      max-width="600px"
       persistent
     >
       <v-card>
@@ -14,7 +14,7 @@
           You don't have namespaces
         </v-card-title>
 
-        <v-card-text class="mt-4 mb-0 pb-1">
+        <v-card-text class="mt-4 mb-0 pb-1 mb-4">
           <p>
             In order to use shellhub you need to associate a namespace with your account.
           </p>
@@ -36,13 +36,13 @@
           </div>
         </v-card-text>
         <v-card-actions>
-          <v-spacer />
           <v-btn
             text
             @click="close"
           >
             Close
           </v-btn>
+          <v-spacer />
           <v-btn
             v-if="!openVersion"
             id="namespace-add"
@@ -56,6 +56,7 @@
       <NamespaceAdd
         v-if="!openVersion"
         :show.sync="dialogAdd"
+        :first-namespace="autoSwitch"
       />
     </v-dialog>
   </v-card>
@@ -98,6 +99,10 @@ export default {
 
     openVersion() {
       return !this.$env.isHosted;
+    },
+
+    autoSwitch() {
+      return localStorage.getItem('tenant') === '';
     },
   },
 

@@ -57,7 +57,8 @@ export default {
 
   actions: {
     post: async (context, data) => {
-      await postNamespace(data);
+      const res = await postNamespace(data);
+      return res;
     },
 
     fetch: async (context) => {

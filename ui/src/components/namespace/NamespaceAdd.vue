@@ -21,7 +21,7 @@
                 rules="required|rfc1123"
               >
                 <v-text-field
-                  v-model="namespace"
+                  v-model="namespaceName"
                   label="Namespace"
                   :error-messages="errors"
                   require
@@ -67,6 +67,11 @@ export default {
   },
 
   props: {
+    firstNamespace: {
+      type: Boolean,
+      default: false,
+    },
+
     show: {
       type: Boolean,
       required: true,
@@ -76,7 +81,7 @@ export default {
   data() {
     return {
       dialog: false,
-      namespace: '',
+      namespaceName: '',
     };
   },
 
@@ -96,19 +101,35 @@ export default {
     cancel() {
       this.dialog = false;
       this.$refs.obs.reset();
-      this.namespace = '';
+      this.namespaceName = '';
       this.$emit('update:show', false);
+    },
+
+    async switchIn(tenant) {
+      try {
+        await this.$store.dispatch('namespaces/switchNamespace', {
+          tenant_id: tenant,
+        });
+        window.location.reload();
+      } catch {
+        this.$store.dispatch('snackbar/showSnackbarErrorLoading', this.$errors.namespaceSwitch);
+      }
     },
 
     async addNamespace() {
       try {
-        await this.$store.dispatch('namespaces/post', {
-          name: this.namespace,
+        const response = await this.$store.dispatch('namespaces/post', {
+          name: this.namespaceName,
         });
-        await this.$store.dispatch('namespaces/fetch');
+        if (this.$props.firstNamespace) {
+          await this.switchIn(response.data.tenant_id);
+        } else {
+          await this.$store.dispatch('namespaces/fetch');
+          this.$emit('update:show', false);
+        }
         this.dialog = false;
-        this.namespace = '';
-        this.$emit('update:show', false);
+        this.namespaceName = '';
+        this.$refs.obs.reset();
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.namespaceCreating);
       } catch {
         this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.namespaceCreating);
