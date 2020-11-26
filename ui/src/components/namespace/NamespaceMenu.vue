@@ -9,19 +9,27 @@
           <v-icon left>
             mdi-server
           </v-icon>
-          {{ namespace.name }}
+          <span>
+            {{ namespace.name }}
+          </span>
           <v-icon right>
             mdi-chevron-down
           </v-icon>
         </v-chip>
       </template>
+
       <v-card>
         <v-subheader>Tenant ID</v-subheader>
-        <v-list-item>
-          <v-list-item-content>
-            <v-list-item-subtitle>
+
+        <v-list
+          class="pt-0 pb-0"
+        >
+          <v-list-item>
+            <v-list-item-content>
               <v-chip>
-                <span data-test="tenantID-text">{{ tenant }}</span>
+                <v-list-item-title>
+                  <span data-test="tenantID-text">{{ tenant }}</span>
+                </v-list-item-title>
                 <v-icon
                   v-clipboard="tenant"
                   v-clipboard:success="() => {
@@ -32,15 +40,21 @@
                   mdi-content-copy
                 </v-icon>
               </v-chip>
-            </v-list-item-subtitle>
-          </v-list-item-content>
-        </v-list-item>
-        <v-list>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list>
+
+        <v-divider />
+
+        <v-list
+          class="pt-0"
+        >
           <v-subheader>Namespaces</v-subheader>
+
           <v-list-item-group>
             <v-virtual-scroll
-              :height="150"
-              item-height="60"
+              :max-height="149"
+              item-height="50"
               :items="namespaces"
             >
               <template #default="{ item }">
@@ -60,40 +74,40 @@
               </template>
             </v-virtual-scroll>
           </v-list-item-group>
-          <v-divider />
-          <v-list-item-group
-            v-model="model"
-            two-line
+        </v-list>
+
+        <v-divider />
+
+        <v-list
+          class="pt-0 pb-0"
+        >
+          <v-list-item
+            v-show="show"
+            @click="dialog=!dialog"
           >
-            <v-list-item
-              v-show="show"
-              @click="dialog=!dialog"
-            >
-              <v-list-item-icon>
-                <v-icon>mdi-plus-box</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title>
-                  Create Namespace
-                </v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
-            <v-divider />
-            <v-list-item
-              to="/settings/namespace-manager"
-            >
-              <v-list-item-icon>
-                <v-icon>mdi-cog</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title>
-                  Settings
-                </v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
-          </v-list-item-group>
+            <v-list-item-icon>
+              <v-icon>mdi-plus-box</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              Create Namespace
+            </v-list-item-content>
+          </v-list-item>
+
+          <v-divider />
+
+          <v-list-item
+            to="/settings/namespace-manager"
+          >
+            <v-list-item-icon>
+              <v-icon>mdi-cog</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              Settings
+            </v-list-item-content>
+          </v-list-item>
         </v-list>
       </v-card>
+
       <NamespaceAdd
         :show.sync="dialog"
       />
