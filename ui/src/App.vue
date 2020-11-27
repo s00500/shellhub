@@ -49,7 +49,6 @@
       <v-spacer />
 
       <NamespaceMenu
-        v-if="hasNamespaces"
         :in-a-namespace="hasNamespaces"
       />
 
@@ -119,6 +118,7 @@ export default {
     return {
       drawer: true,
       clipped: false,
+      showMenu: false,
       items: [
         {
           icon: 'dashboard',
