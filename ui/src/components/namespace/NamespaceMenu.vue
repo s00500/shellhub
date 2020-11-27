@@ -1,117 +1,141 @@
 <template>
   <fragment>
-    <v-menu
-      :close-on-content-click="false"
-      offset-y
-    >
-      <template #activator="{ on }">
-        <v-chip v-on="on">
-          <v-icon left>
-            mdi-server
-          </v-icon>
-          <span>
-            {{ namespace.name }}
-          </span>
-          <v-icon right>
-            mdi-chevron-down
-          </v-icon>
-        </v-chip>
-      </template>
-
-      <v-card>
-        <v-subheader>Tenant ID</v-subheader>
-
-        <v-list
-          class="pt-0 pb-0"
+    <v-row>
+      <v-col
+        v-if="!loggedInNamespace && isHosted"
+      >
+        <v-btn
+          class="v-btn--active float-right"
+          text
+          small
+          @click="addNamespace"
         >
-          <v-list-item>
-            <v-list-item-content>
-              <v-chip>
-                <v-list-item-title>
-                  <span data-test="tenantID-text">{{ tenant }}</span>
-                </v-list-item-title>
-                <v-icon
-                  v-clipboard="tenant"
-                  v-clipboard:success="() => {
-                    this.$store.dispatch('snackbar/showSnackbarCopy', this.$copy.tenantId);
-                  }"
-                  right
-                >
-                  mdi-content-copy
-                </v-icon>
-              </v-chip>
-            </v-list-item-content>
-          </v-list-item>
-        </v-list>
-
-        <v-divider />
-
-        <v-list
-          class="pt-0"
+          Add Namespace
+        </v-btn>
+      </v-col>
+      <v-col
+        v-else
+      >
+        <v-menu
+          v-show="displayMenu"
+          :close-on-content-click="false"
+          offset-y
         >
-          <v-subheader>Namespaces</v-subheader>
-
-          <v-list-item-group>
-            <v-virtual-scroll
-              :max-height="149"
-              item-height="50"
-              :items="namespaces"
+          <template #activator="{ on }">
+            <v-chip
+              v-show="loggedInNamespace"
+              class="float-right"
+              @click="openMenu"
+              v-on="on"
             >
-              <template #default="{ item }">
-                <v-list-item
-                  :key="item.tenant_id"
-                  @click="switchIn(item.tenant_id)"
-                >
-                  <v-list-item-icon>
-                    <v-icon>mdi-login</v-icon>
-                  </v-list-item-icon>
-                  <v-list-item-content>
+              <v-icon
+                left
+              >
+                mdi-server
+              </v-icon>
+              {{ namespace.name }}
+              <v-icon right>
+                mdi-chevron-down
+              </v-icon>
+            </v-chip>
+          </template>
+
+          <v-card>
+            <v-subheader>Tenant ID</v-subheader>
+
+            <v-list
+              class="pt-0 pb-0"
+            >
+              <v-list-item>
+                <v-list-item-content>
+                  <v-chip>
                     <v-list-item-title>
-                      {{ item.name }}
+                      <span data-test="tenantID-text">{{ tenant }}</span>
                     </v-list-item-title>
-                  </v-list-item-content>
-                </v-list-item>
-              </template>
-            </v-virtual-scroll>
-          </v-list-item-group>
-        </v-list>
+                    <v-icon
+                      v-clipboard="tenant"
+                      v-clipboard:success="() => {
+                        this.$store.dispatch('snackbar/showSnackbarCopy', this.$copy.tenantId);
+                      }"
+                      right
+                    >
+                      mdi-content-copy
+                    </v-icon>
+                  </v-chip>
+                </v-list-item-content>
+              </v-list-item>
+            </v-list>
 
-        <v-divider />
+            <v-divider />
 
-        <v-list
-          class="pt-0 pb-0"
-        >
-          <v-list-item
-            v-show="show"
-            @click="dialog=!dialog"
-          >
-            <v-list-item-icon>
-              <v-icon>mdi-plus-box</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
-              Create Namespace
-            </v-list-item-content>
-          </v-list-item>
+            <v-list
+              class="pt-0"
+            >
+              <v-subheader>Namespaces</v-subheader>
 
-          <v-divider />
+              <v-list-item-group>
+                <v-virtual-scroll
+                  :height="150"
+                  item-height="50"
+                  :items="availableNamespaces"
+                >
+                  <template #default="{ item }">
+                    <v-list-item
+                      :key="item.tenant_id"
+                      @click="switchIn(item.tenant_id)"
+                    >
+                      <v-list-item-icon>
+                        <v-icon>mdi-login</v-icon>
+                      </v-list-item-icon>
+                      <v-list-item-content>
+                        <v-list-item-title>
+                          {{ item.name }}
+                        </v-list-item-title>
+                      </v-list-item-content>
+                    </v-list-item>
+                  </template>
+                </v-virtual-scroll>
+              </v-list-item-group>
+            </v-list>
 
-          <v-list-item
-            to="/settings/namespace-manager"
-          >
-            <v-list-item-icon>
-              <v-icon>mdi-cog</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
-              Settings
-            </v-list-item-content>
-          </v-list-item>
-        </v-list>
-      </v-card>
+            <v-divider />
 
+            <v-list
+              class="pt-0 pb-0"
+            >
+              <v-list-item
+                v-show="isHosted"
+                @click="dialog=!dialog"
+              >
+                <v-list-item-icon>
+                  <v-icon>mdi-plus-box</v-icon>
+                </v-list-item-icon>
+                <v-list-item-content>
+                  Create Namespace
+                </v-list-item-content>
+              </v-list-item>
+
+              <v-divider />
+
+              <v-list-item
+                to="/settings/namespace-manager"
+              >
+                <v-list-item-icon>
+                  <v-icon>mdi-cog</v-icon>
+                </v-list-item-icon>
+                <v-list-item-content>
+                  Settings
+                </v-list-item-content>
+              </v-list-item>
+            </v-list>
+          </v-card>
+        </v-menu>
+      </v-col>
       <NamespaceAdd
         :show.sync="dialog"
+        :first-namespace="first"
       />
-    </v-menu>
+    </v-row>
   </fragment>
 </template>
 
@@ -136,6 +160,8 @@ export default {
     return {
       model: true,
       dialog: false,
+      displayMenu: false,
+      first: false,
     };
   },
 
@@ -156,11 +182,19 @@ export default {
       return this.$store.getters['namespaces/list'];
     },
 
+    availableNamespaces() {
+      return this.namespaces.filter((ns) => ns.tenant_id !== this.namespace.tenant_id);
+    },
+
+    loggedInNamespace() {
+      return this.$props.inANamespace;
+    },
+
     tenant() {
       return localStorage.getItem('tenant');
     },
 
-    show() {
+    isHosted() {
       return this.$env.isHosted;
     },
   },
@@ -173,16 +207,26 @@ export default {
     },
   },
 
-  created() {
-    if (this.$props.inANamespace) {
-      this.getNamespaces();
-    }
+  async created() {
+    await this.getNamespaces();
   },
 
   methods: {
+    addNamespace() {
+      this.dialog = !this.dialog;
+      this.first = true;
+    },
+
+    async openMenu() {
+      if (!this.displayMenu) {
+        await this.getNamespaces();
+      }
+      this.displayMenu = !this.displayMenu;
+    },
+
     async getNamespaces() {
       try {
-        // load namespaces
+        await this.$store.dispatch('namespaces/fetch');
         await this.$store.dispatch('namespaces/get', this.tenant);
       } catch (e) {
         if (e.response.status === 403) {
