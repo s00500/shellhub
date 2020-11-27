@@ -120,7 +120,7 @@
             <v-divider />
 
             <div
-              v-show="show"
+              v-show="isHosted"
               class="mt-6 mb-6 pl-4 pr-4"
             >
               <v-row>
@@ -145,8 +145,8 @@
               <div>
                 <v-list>
                   <v-list-item
-                    v-for="item in namespace.member_names"
-                    :key="item"
+                    v-for="item in namespace.members"
+                    :key="item.id"
                   >
                     <v-row>
                       <v-col
@@ -160,9 +160,9 @@
 
                       <v-col>
                         <v-list-item-title
-                          :data-test="item"
+                          :data-test="item.name"
                         >
-                          {{ item }}
+                          {{ item.name }}
                         </v-list-item-title>
                       </v-col>
 
@@ -174,7 +174,7 @@
                       >
                         <v-btn
                           outlined
-                          @click="remove(item)"
+                          @click="remove(item.name)"
                         >
                           <v-tooltip
                             bottom
@@ -233,7 +233,7 @@
               class="mt-6 mb-6 pl-4 pr-4"
             >
               <SettingSecurity
-                :show="show"
+                :show="isHosted"
               />
             </div>
           </v-col>
@@ -284,11 +284,15 @@ export default {
       return this.$store.getters['namespaces/get'];
     },
 
+    members() {
+      return this.$store.getters['namespaces/get'];
+    },
+
     tenant() {
       return localStorage.getItem('tenant');
     },
 
-    show() {
+    isHosted() {
       return this.$env.isHosted && this.isOwner;
     },
   },

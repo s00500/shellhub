@@ -17,7 +17,7 @@ describe('SettingNamespace', () => {
   const namespace = {
     name: 'namespace3',
     owner: 'user1',
-    member_names: ['user6', 'user7', 'user8'],
+    members: [{ name: 'user6' }, { name: 'user7' }, { name: 'user8' }],
     tenant_id: 'e359bf484715',
   };
 
@@ -62,16 +62,16 @@ describe('SettingNamespace', () => {
   });
   it('Process data in the computed', () => {
     expect(wrapper.vm.namespace).toEqual(namespace);
-    expect(wrapper.vm.show).toEqual(false);
+    expect(wrapper.vm.isHosted).toEqual(false);
   });
   it('Loads name when component is created', () => {
     wrapper.vm.$nextTick(() => {
       expect(wrapper.vm.name).toBe(namespace.name);
     });
   });
-  namespace.member_names.forEach((member) => {
+  namespace.members.forEach((member) => {
     it(`Loads ${member} member in template`, () => {
-      expect(wrapper.find(`[data-test=${member}]`).text()).toEqual(member);
+      expect(wrapper.find(`[data-test=${member.name}]`).text()).toEqual(member.name);
     });
   });
 });

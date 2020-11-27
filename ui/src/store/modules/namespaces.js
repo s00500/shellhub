@@ -40,8 +40,8 @@ export default {
     },
 
     removeMember: (state, usr) => {
-      state.namespace.member_names.splice(state.namespace.member_names.findIndex(
-        (m) => m === usr,
+      state.namespace.members.splice(state.namespace.members.findIndex(
+        (m) => m.name === usr,
       ), 1);
     },
 
