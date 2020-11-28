@@ -146,7 +146,6 @@ func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*mo
 		if err != nil {
 			return nil, err
 		}
-
 		return &models.UserAuthResponse{
 			Token:  tokenStr,
 			Name:   user.Name,
@@ -166,15 +165,17 @@ func (s *service) AuthGetToken(ctx context.Context, ID string) (*models.UserAuth
 		return nil, err
 	}
 
+	tenant := ""
 	namespace, err := s.store.GetSomeNamespace(ctx, user.ID)
-	if err != nil {
-		return nil, err
+	if namespace != nil {
+		tenant = namespace.TenantID
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, models.UserAuthClaims{
 		Username: user.Username,
 		Admin:    true,
-		Tenant:   namespace.TenantID,
+		Tenant:   tenant,
+		ID:       user.ID,
 		AuthClaims: models.AuthClaims{
 			Claims: "user",
 		},
@@ -187,13 +188,12 @@ func (s *service) AuthGetToken(ctx context.Context, ID string) (*models.UserAuth
 	if err != nil {
 		return nil, err
 	}
-
 	return &models.UserAuthResponse{
 		Token:  tokenStr,
 		Name:   user.Name,
 		ID:     user.ID,
 		User:   user.Username,
-		Tenant: user.TenantID,
+		Tenant: tenant,
 		Email:  user.Email,
 	}, nil
 }
@@ -254,13 +254,12 @@ func (s *service) AuthSwapToken(ctx context.Context, username, tenant string) (*
 			if err != nil {
 				return nil, err
 			}
-
 			return &models.UserAuthResponse{
 				Token:  tokenStr,
 				Name:   user.Name,
 				ID:     user.ID,
 				User:   user.Username,
-				Tenant: user.TenantID,
+				Tenant: namespace.TenantID,
 				Email:  user.Email}, nil
 		}
 	}
