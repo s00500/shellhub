@@ -92,17 +92,21 @@ func AuthUser(c apicontext.Context) error {
 
 func AuthUserInfo(c apicontext.Context) error {
 	username := c.Request().Header.Get("X-Username")
+	tenant := c.Request().Header.Get("X-Tenant-ID")
 
 	user, err := c.Store().GetUserByUsername(c.Ctx(), username)
 	if err != nil {
 		return echo.ErrUnauthorized
 	}
-
+	namespace, err := c.Store().GetNamespace(c.Ctx(), tenant)
+	if err != nil {
+		return echo.ErrUnauthorized
+	}
 	return c.JSON(http.StatusOK, &models.UserAuthResponse{
 		Token:  c.Request().Header.Get(echo.HeaderAuthorization),
 		Name:   user.Name,
 		User:   user.Username,
-		Tenant: user.TenantID,
+		Tenant: namespace.TenantID,
 	})
 }
 
