@@ -11,7 +11,8 @@
             sm="8"
           >
             <div
-              v-show="!isOwner"
+              v-if="!isOwner"
+              data-test="notTheOwner"
               style="text-align:center"
             >
               <h3
@@ -44,7 +45,9 @@
                     :elevation="0"
                   >
                     <v-chip>
-                      <span>
+                      <span
+                        data-test="tenant"
+                      >
                         {{ tenant }}
                       </span>
                       <v-icon
@@ -66,175 +69,178 @@
             <v-divider />
 
             <div
-              v-show="isOwner"
-              class="mt-6 mb-6 pl-4 pr-4"
+              v-if="isOwner || isHostedOwner"
             >
-              <h3
-                class="mb-5"
+              <div
+                v-if="isOwner"
+                class="mt-6 mb-6 pl-4 pr-4"
+                data-test="editOperation"
               >
-                Edit namespace
-              </h3>
+                <h3>
+                  Edit Namespace
+                </h3>
 
-              <ValidationObserver
-                ref="data"
-                v-slot="{ passes }"
-              >
-                <div>
-                  <ValidationProvider
-                    v-slot="{ errors }"
-                    ref="providerName"
-                    vid="name"
-                    name="Priority"
-                    rules="required|rfc1123"
-                  >
-                    <v-row>
-                      <v-col
-                        class="ml-3"
-                      >
-                        <v-text-field
-                          v-model="name"
-                          label="Name"
-                          :error-messages="errors"
-                          required
-                          data-test="name-text"
-                        />
-                      </v-col>
-                      <v-col
-                        md="auto"
-                        class="ml-auto"
-                      >
-                        <v-btn
-                          outlined
-                          @click="passes(editNamespace)"
-                        >
-                          Rename Namespace
-                        </v-btn>
-                      </v-col>
-                    </v-row>
-                  </ValidationProvider>
-                </div>
-              </ValidationObserver>
-            </div>
-
-            <v-divider />
-            <v-divider />
-
-            <div
-              v-show="isHosted"
-              class="mt-6 mb-6 pl-4 pr-4"
-            >
-              <v-row>
-                <v-col>
-                  <h3
-                    class="mb-5"
-                  >
-                    Members
-                  </h3>
-                </v-col>
-
-                <v-spacer />
-
-                <v-col
-                  md="auto"
-                  class="ml-auto"
+                <ValidationObserver
+                  ref="data"
+                  v-slot="{ passes }"
                 >
-                  <NamespaceNewMember :ns-tenant="tenant" />
-                </v-col>
-              </v-row>
-
-              <div>
-                <v-list>
-                  <v-list-item
-                    v-for="item in namespace.members"
-                    :key="item.id"
-                  >
-                    <v-row>
-                      <v-col
-                        md="auto"
-                        class="ml-auto"
-                      >
-                        <v-icon>
-                          mdi-account
-                        </v-icon>
-                      </v-col>
-
-                      <v-col>
-                        <v-list-item-title
-                          :data-test="item.name"
+                  <div>
+                    <ValidationProvider
+                      v-slot="{ errors }"
+                      ref="providerName"
+                      vid="name"
+                      name="Priority"
+                      rules="required|rfc1123"
+                    >
+                      <v-row>
+                        <v-col
+                          class="ml-3"
                         >
-                          {{ item.name }}
-                        </v-list-item-title>
-                      </v-col>
-
-                      <v-spacer />
-
-                      <v-col
-                        md="auto"
-                        class="ml-auto"
-                      >
-                        <v-btn
-                          outlined
-                          @click="remove(item.name)"
+                          <v-text-field
+                            v-model="name"
+                            label="Name"
+                            :error-messages="errors"
+                            required
+                            data-test="name-text"
+                          />
+                        </v-col>
+                        <v-col
+                          md="auto"
+                          class="ml-auto"
                         >
-                          <v-tooltip
-                            bottom
+                          <v-btn
+                            outlined
+                            @click="passes(editNamespace)"
                           >
-                            <template #activator="{ on }">
-                              <v-icon
-                                v-on="on"
-                              >
-                                delete
-                              </v-icon>
-                            </template>
-                            <span>
-                              Remove user
-                            </span>
-                          </v-tooltip>
-                        </v-btn>
-                      </v-col>
-                    </v-row>
-                  </v-list-item>
-                </v-list>
+                            Rename Namespace
+                          </v-btn>
+                        </v-col>
+                      </v-row>
+                    </ValidationProvider>
+                  </div>
+                </ValidationObserver>
               </div>
-            </div>
 
-            <v-divider />
-            <v-divider />
+              <v-divider />
+              <v-divider />
 
-            <div
-              v-show="isOwner"
-              class="mt-6 mb-6 pl-4 pr-4"
-            >
-              <h3
-                class="mb-5"
+              <div
+                v-if="isHostedOwner"
+                class="mt-6 mb-6 pl-4 pr-4"
+                data-test="userOperation"
               >
-                Danger Zone
-              </h3>
+                <v-row>
+                  <v-col>
+                    <h3
+                      class="mb-5"
+                    >
+                      Members
+                    </h3>
+                  </v-col>
 
-              <v-row>
-                <v-col
-                  class="ml-3"
+                  <v-spacer />
+
+                  <v-col
+                    md="auto"
+                    class="ml-auto"
+                  >
+                    <NamespaceNewMember :ns-tenant="tenant" />
+                  </v-col>
+                </v-row>
+
+                <div>
+                  <v-list>
+                    <v-list-item
+                      v-for="item in namespace.members"
+                      :key="item.id"
+                    >
+                      <v-row>
+                        <v-col
+                          md="auto"
+                          class="ml-auto"
+                        >
+                          <v-icon>
+                            mdi-account
+                          </v-icon>
+                        </v-col>
+
+                        <v-col>
+                          <v-list-item-title
+                            :data-test="item.name"
+                          >
+                            {{ item.name }}
+                          </v-list-item-title>
+                        </v-col>
+
+                        <v-spacer />
+
+                        <v-col
+                          md="auto"
+                          class="ml-auto"
+                        >
+                          <v-btn
+                            outlined
+                            @click="remove(item.name)"
+                          >
+                            <v-tooltip
+                              bottom
+                            >
+                              <template #activator="{ on }">
+                                <v-icon
+                                  v-on="on"
+                                >
+                                  delete
+                                </v-icon>
+                              </template>
+                              <span>
+                                Remove user
+                              </span>
+                            </v-tooltip>
+                          </v-btn>
+                        </v-col>
+                      </v-row>
+                    </v-list-item>
+                  </v-list>
+                </div>
+                <v-divider />
+                <v-divider />
+              </div>
+
+              <div
+                v-if="isOwner"
+                class="mt-6 mb-6 pl-4 pr-4"
+                data-test="deleteOperation"
+              >
+                <h3
+                  class="mb-5"
                 >
-                  Delete this namespace
-                </v-col>
-                <v-col
-                  md="auto"
-                  class="ml-auto"
-                >
-                  <NamespaceDelete :ns-tenant="tenant" />
-                </v-col>
-              </v-row>
-            </div>
+                  Danger Zone
+                </h3>
 
-            <v-divider />
-            <v-divider />
+                <v-row>
+                  <v-col
+                    class="ml-3"
+                  >
+                    Delete this Namespace
+                  </v-col>
+                  <v-col
+                    md="auto"
+                    class="ml-auto"
+                  >
+                    <NamespaceDelete :ns-tenant="tenant" />
+                  </v-col>
+                </v-row>
+                <v-divider />
+                <v-divider />
+              </div>
 
-            <div
-              class="mt-6 mb-6 pl-4 pr-4"
-            >
-              <SettingSecurity
-                :show="isHosted"
-              />
+              <div
+                v-if="isHostedOwner"
+                data-test="securityOperation"
+                class="mt-6 mb-6 pl-4 pr-4"
+              >
+                <SettingSecurity />
+              </div>
             </div>
           </v-col>
         </v-row>
@@ -292,7 +298,7 @@ export default {
       return localStorage.getItem('tenant');
     },
 
-    isHosted() {
+    isHostedOwner() {
       return this.$env.isHosted && this.isOwner;
     },
   },

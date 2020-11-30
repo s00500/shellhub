@@ -5,7 +5,7 @@
         v-if="!loggedInNamespace && isHosted"
       >
         <v-btn
-          class="v-btn--active float-right"
+          class="v-btn--active float-right mr-3"
           text
           small
           @click="addNamespace"
@@ -13,12 +13,13 @@
           Add Namespace
         </v-btn>
       </v-col>
+
       <v-col
         v-else
       >
         <v-menu
           v-show="displayMenu"
-          :close-on-content-click="false"
+          :close-on-content-click="true"
           offset-y
         >
           <template #activator="{ on }">
