@@ -184,18 +184,6 @@ export default {
     },
   },
 
-  async created() {
-    try {
-      await this.$store.dispatch('namespaces/fetch');
-    } catch (e) {
-      if (e.response.status === 403) {
-        this.$store.dispatch('snackbar/showSnackbarErrorAssociation');
-      } else {
-        this.$store.dispatch('snackbar/showSnackbarErrorDefault');
-      }
-    }
-  },
-
   methods: {
     logout() {
       this.$store.dispatch('auth/logout').then(() => {
