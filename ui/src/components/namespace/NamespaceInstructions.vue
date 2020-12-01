@@ -3,20 +3,20 @@
     <v-dialog
       v-model="showNoNamespace"
       :retain-focus="false"
-      max-width="600px"
+      max-width="650px"
       persistent
     >
       <v-card>
         <v-card-title
-          class="headline grey lighten-2 text-center"
-          primary-title
+          class="headline grey lighten-2"
         >
-          You don't have namespaces
+          There are no namespaces associated with your account
         </v-card-title>
 
         <v-card-text class="mt-4 mb-0 pb-1 mb-4">
           <p>
-            In order to use shellhub you need to associate a namespace with your account.
+            In order to use ShellHub, you first need to create a namespace to associate with
+            your account or join an existing one.
           </p>
           <div
             v-if="openVersion"
@@ -24,11 +24,11 @@
           >
             <p>
               The easiest way to configure a namespace is by using the cli
-              script, as follows:
+              script.
             </p>
             <p class="caption mb-0">
               Check the <a
-                :href="'https://shellhub-io.github.io/'"
+                :href="'https://docs.shellhub.io/admin-manual/managing/'"
                 target="_blank"
               >documentation</a>
               for more information and alternative install methods.
