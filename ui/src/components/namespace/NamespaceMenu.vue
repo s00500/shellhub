@@ -5,7 +5,7 @@
         v-if="!loggedInNamespace && isHosted"
       >
         <v-btn
-          class="v-btn--active float-right"
+          class="v-btn--active float-right mr-3"
           text
           small
           @click="addNamespace"
