@@ -207,7 +207,7 @@ var migrations = []migrate.Migration{
 			return err
 		},
 	},
-{
+	{
 		Version: 12,
 		Up: func(db *mongo.Database) error {
 			mod := mongo.IndexModel{
@@ -226,6 +226,58 @@ var migrations = []migrate.Migration{
 		},
 		Down: func(db *mongo.Database) error {
 			_, err := db.Collection("namespaces").Indexes().DropOne(context.TODO(), "tenant_id")
+			return err
+		},
+	},
+	{
+		Version: 13,
+		Up: func(db *mongo.Database) error {
+			cursor, err := db.Collection("users").Find(context.TODO(), bson.D{})
+			if err != nil {
+				return err
+			}
+			defer cursor.Close(context.TODO())
+			for cursor.Next(context.TODO()) {
+				user := new(models.User)
+				err := cursor.Decode(&user)
+				if err != nil {
+					return err
+				}
+				settings := &models.NamespaceSettings{SessionRecord: true}
+				namespace := &models.Namespace{
+					Owner:    user.ID,
+					Members:  []string{user.ID},
+					TenantID: user.TenantID,
+					Name:     user.Username,
+					Settings: settings,
+				}
+				_, err = db.Collection("namespaces").InsertOne(context.TODO(), &namespace)
+				if err != nil {
+					return nil
+				}
+			}
+			if _, err := db.Collection("users").UpdateMany(context.TODO(), bson.M{}, bson.M{"$unset": bson.M{"tenant_id": ""}}); err != nil {
+				return err
+			}
+			_, err = db.Collection("users").Indexes().DropOne(context.TODO(), "tenant_id")
+
+			return err
+		},
+		Down: func(db *mongo.Database) error {
+			cursor, err := db.Collection("namespaces").Find(context.TODO(), bson.D{})
+			if err != nil {
+				return err
+			}
+			defer cursor.Close(context.TODO())
+			for cursor.Next(context.TODO()) {
+				namespace := new(models.Namespace)
+				err := cursor.Decode(&namespace)
+				if err != nil {
+					return err
+				}
+				_, err = db.Collection("users").UpdateOne(context.TODO(), bson.M{"_id": namespace.Owner}, bson.M{"$set": bson.M{"tenant": namespace.TenantID}})
+			}
+
 			return err
 		},
 	},
