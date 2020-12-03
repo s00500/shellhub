@@ -637,20 +637,6 @@ func TestGetUserByEmail(t *testing.T) {
 	assert.NotEmpty(t, u)
 }
 
-func TestGetUserByTenant(t *testing.T) {
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"))
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", TenantID: "tenant"}
-	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
-	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
-	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
-	u, err := mongostore.GetUserByTenant(ctx, "tenant")
-	assert.NoError(t, err)
-	assert.NotEmpty(t, u)
-}
 func TestGetDeviceByMac(t *testing.T) {
 	db := dbtest.DBServer{}
 	defer db.Stop()
