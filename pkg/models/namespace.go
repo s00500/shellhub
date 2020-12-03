@@ -6,6 +6,8 @@ type Namespace struct {
 	TenantID string             `json:"tenant_id" bson:"tenant_id,omitempty"`
 	Members  interface{}        `json:"members" bson:"members"`
 	Settings *NamespaceSettings `json:"settings"`
+	Devices  int                `json:"devices" bson:",omitempty"`
+	Sessions int                `json:"sessions" bson:",omitempty"`
 }
 
 type NamespaceSettings struct {
