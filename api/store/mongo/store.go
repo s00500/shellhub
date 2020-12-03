@@ -1240,6 +1240,9 @@ func (s *Store) ListNamespaces(ctx context.Context, pagination paginator.Query, 
 			},
 		}
 	}
+	if len(queryMatch) > 0 {
+		query = append(query, queryMatch...)
+	}
 
 	// Only match for the respective tenant if requested
 	if username := apicontext.UsernameFromContext(ctx); username != nil {
