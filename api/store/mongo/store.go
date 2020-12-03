@@ -1324,7 +1324,6 @@ func (s *Store) GetSomeNamespace(ctx context.Context, ID string) (*models.Namesp
 	return ns, nil
 }
 
-
 func buildPaginationQuery(pagination paginator.Query) []bson.M {
 	if pagination.PerPage == -1 {
 		return nil
@@ -1334,79 +1333,4 @@ func buildPaginationQuery(pagination paginator.Query) []bson.M {
 		bson.M{"$skip": pagination.PerPage * (pagination.Page - 1)},
 		bson.M{"$limit": pagination.PerPage},
 	}
-}
-
-func EnsureIndexes(db *mongo.Database) error {
-	mod := mongo.IndexModel{
-		Keys:    bson.D{{"uid", 1}},
-		Options: options.Index().SetName("uid").SetUnique(true),
-	}
-	_, err := db.Collection("devices").Indexes().CreateOne(context.TODO(), mod)
-	if err != nil {
-		return err
-	}
-
-	mod = mongo.IndexModel{
-		Keys:    bson.D{{"last_seen", 1}},
-		Options: options.Index().SetName("last_seen").SetExpireAfterSeconds(30),
-	}
-	_, err = db.Collection("connected_devices").Indexes().CreateOne(context.TODO(), mod)
-	if err != nil {
-		return err
-	}
-
-	mod = mongo.IndexModel{
-		Keys:    bson.D{{"uid", 1}},
-		Options: options.Index().SetName("uid").SetUnique(false),
-	}
-	_, err = db.Collection("connected_devices").Indexes().CreateOne(context.TODO(), mod)
-	if err != nil {
-		return err
-	}
-
-	mod = mongo.IndexModel{
-		Keys:    bson.D{{"uid", 1}},
-		Options: options.Index().SetName("uid").SetUnique(true),
-	}
-	_, err = db.Collection("sessions").Indexes().CreateOne(context.TODO(), mod)
-	if err != nil {
-		return err
-	}
-
-	mod = mongo.IndexModel{
-		Keys:    bson.D{{"last_seen", 1}},
-		Options: options.Index().SetName("last_seen").SetExpireAfterSeconds(30),
-	}
-	_, err = db.Collection("active_sessions").Indexes().CreateOne(context.TODO(), mod)
-	if err != nil {
-		return err
-	}
-
-	mod = mongo.IndexModel{
-		Keys:    bson.D{{"uid", 1}},
-		Options: options.Index().SetName("uid").SetUnique(false),
-	}
-	_, err = db.Collection("active_sessions").Indexes().CreateOne(context.TODO(), mod)
-	if err != nil {
-		return err
-	}
-
-	mod = mongo.IndexModel{
-		Keys:    bson.D{{"username", 1}},
-		Options: options.Index().SetName("username").SetUnique(true),
-	}
-	_, err = db.Collection("users").Indexes().CreateOne(context.TODO(), mod)
-	if err != nil {
-		return err
-	}
-
-	mod = mongo.IndexModel{
-		Keys:    bson.D{{"tenant_id", 1}},
-		Options: options.Index().SetName("tenant_id").SetUnique(true),
-	}
-	_, err = db.Collection("users").Indexes().CreateOne(context.TODO(), mod)
-	if err != nil {
-		return err
-	}
-	return nil
 }
