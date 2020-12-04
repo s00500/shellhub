@@ -21,7 +21,7 @@ func TestAddDevice(t *testing.T) {
 
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"))
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", TenantID: "tenant"}
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
 	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
@@ -55,7 +55,7 @@ func TestGetDevice(t *testing.T) {
 
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"))
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", TenantID: "tenant"}
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
 	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
@@ -92,7 +92,7 @@ func TestRenameDevice(t *testing.T) {
 
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"))
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", TenantID: "tenant"}
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
 	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
@@ -127,7 +127,7 @@ func TestLookupDevice(t *testing.T) {
 
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"))
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", TenantID: "tenant"}
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
 	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
@@ -165,7 +165,7 @@ func TestUpdatePendingStatus(t *testing.T) {
 
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"))
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", TenantID: "tenant"}
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
 	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
@@ -200,7 +200,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"))
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", TenantID: "tenant"}
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
 	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
@@ -235,7 +235,7 @@ func TestCreateSession(t *testing.T) {
 
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"))
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", TenantID: "tenant"}
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
 	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
@@ -281,7 +281,7 @@ func TestGetSession(t *testing.T) {
 
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"))
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", TenantID: "tenant"}
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
 	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
@@ -328,7 +328,7 @@ func TestListSessions(t *testing.T) {
 
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"))
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", TenantID: "tenant"}
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
 	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
@@ -376,7 +376,7 @@ func TestSetSessionAuthenticated(t *testing.T) {
 
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"))
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", TenantID: "tenant"}
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
 	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
@@ -423,7 +423,7 @@ func TestKeepAliveSession(t *testing.T) {
 
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"))
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", TenantID: "tenant"}
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
 	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
@@ -469,7 +469,7 @@ func TestDeactivateSession(t *testing.T) {
 
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"))
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", TenantID: "tenant"}
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
 	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
@@ -516,7 +516,7 @@ func TestRecordSession(t *testing.T) {
 
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"))
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", TenantID: "tenant"}
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
 	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
@@ -563,7 +563,7 @@ func TestGetRecord(t *testing.T) {
 
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"))
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", TenantID: "tenant"}
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
 	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
@@ -614,7 +614,7 @@ func TestGetUserByUsername(t *testing.T) {
 
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"))
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", TenantID: "tenant", ID: "owner"}
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", ID: "owner"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
 	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
@@ -630,7 +630,7 @@ func TestGetUserByEmail(t *testing.T) {
 
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"))
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", TenantID: "tenant"}
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
 	u, err := mongostore.GetUserByEmail(ctx, "email")
 	assert.NoError(t, err)
@@ -643,7 +643,7 @@ func TestGetDeviceByMac(t *testing.T) {
 
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"))
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", TenantID: "tenant"}
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
 	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
@@ -680,7 +680,7 @@ func TestGetDeviceByName(t *testing.T) {
 
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"))
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", TenantID: "tenant"}
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
 	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
@@ -717,7 +717,7 @@ func TestGetDeviceByUID(t *testing.T) {
 
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"))
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", TenantID: "tenant"}
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
 	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
@@ -868,7 +868,7 @@ func TestListDevices(t *testing.T) {
 
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"))
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", TenantID: "tenant"}
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
 	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
@@ -932,7 +932,7 @@ func TestUpdateUID(t *testing.T) {
 
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"))
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", TenantID: "tenant"}
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
 	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
@@ -967,7 +967,7 @@ func TestUpdateUser(t *testing.T) {
 
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"))
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", TenantID: "tenant"}
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 	result, _ := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
 	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
@@ -1011,7 +1011,7 @@ func TestListUsers(t *testing.T) {
 
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"))
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", TenantID: "tenant"}
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
 	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
@@ -1027,7 +1027,7 @@ func TestGetStats(t *testing.T) {
 
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"))
-	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", TenantID: "tenant"}
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
 	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
 	db.Client().Database("test").Collection("users").InsertOne(ctx, user)
 	db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
@@ -1086,7 +1086,6 @@ func TestCreateUser(t *testing.T) {
 		Name:     "user",
 		Email:    "user@shellhub.io",
 		Password: "password",
-		TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
 	})
 	assert.NoError(t, err)
 }
