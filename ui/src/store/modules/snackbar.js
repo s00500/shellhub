@@ -42,6 +42,11 @@ export default {
       Vue.set(state, 'snackbarError', true);
     },
 
+    setSnackbarErrorInvalidKey: (state, data) => {
+      Vue.set(state, 'snackbarMessageAndContentType', data);
+      Vue.set(state, 'snackbarError', true);
+    },
+
     unsetSnackbarError: (state) => {
       Vue.set(state, 'snackbarError', false);
     },
@@ -82,6 +87,11 @@ export default {
 
     showSnackbarErrorDefault: (context) => {
       context.commit('setSnackbarErrorDefault');
+    },
+
+    showSnackbarErrorInvalidKey: (context) => {
+      const data = { typeMessage: 'invalidKey', typeContent: '' };
+      context.commit('setSnackbarErrorInvalidKey', data);
     },
 
     unsetShowStatusSnackbarError: (context) => {

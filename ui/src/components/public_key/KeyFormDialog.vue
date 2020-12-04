@@ -182,8 +182,12 @@ export default {
           await this.$store.dispatch('publickeys/post', keySend);
           this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.publicKeyCreating);
           this.update();
-        } catch {
-          this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.publicKeyCreating);
+        } catch (e) {
+          if (e.response.status === 422) {
+            this.$store.dispatch('snackbar/showSnackbarErrorInvalidKey');
+          } else {
+            this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.publicKeyCreating);
+          }
         }
         break;
       default:
