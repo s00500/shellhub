@@ -355,7 +355,7 @@ var migrations = []migrate.Migration{
 				if err != nil {
 					return err
 				}
-				settings := &models.NamespaceSettings{SessionRecord: user.SessionRecord}
+				settings := &models.NamespaceSettings{SessionRecord: true}
 				namespace := &models.Namespace{
 					Owner:    user.ID,
 					Members:  []string{user.ID},
