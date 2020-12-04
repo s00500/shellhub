@@ -8,6 +8,7 @@ describe('Snackbar', () => {
   const SnackbarMessageAndContentType = { typeMessage: 'default', typeContent: '' };
   const SnackbarMessageAndContentTypeCopy = { typeMessage: '', typeContent: 'copy' };
   const SnackbarMessageAndContentTypeDefault = { typeMessage: '', typeContent: '' };
+  const SnackbarMessageAndContentTypeInvalidKey = { typeMessage: 'invalidKey', typeContent: '' };
   const snackbarCopy = false;
 
   it('Return snackbar default variables', () => {
@@ -37,6 +38,12 @@ describe('Snackbar', () => {
     store.commit('snackbar/setSnackbarErrorLoadingOrAction', SnackbarMessageAndContentTypeError);
 
     expect(store.getters['snackbar/snackbarMessageAndContentType']).toEqual(SnackbarMessageAndContentTypeError);
+    expect(store.getters['snackbar/snackbarError']).toEqual(true);
+  });
+  it('Verify initial states change for mutation setSnackbarErrorInvalidKey', () => {
+    store.commit('snackbar/setSnackbarErrorInvalidKey', SnackbarMessageAndContentTypeInvalidKey);
+
+    expect(store.getters['snackbar/snackbarMessageAndContentType']).toEqual(SnackbarMessageAndContentTypeInvalidKey);
     expect(store.getters['snackbar/snackbarError']).toEqual(true);
   });
   it('Verify initial states change for mutation setSnackbarErrorDefault', () => {
