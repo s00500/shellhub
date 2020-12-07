@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"errors"
 	"github.com/shellhub-io/shellhub/api/apicontext"
 	"github.com/shellhub-io/shellhub/api/nsadm"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -53,11 +54,15 @@ func CreateNamespace(c apicontext.Context) error {
 	if v := c.Username(); v != nil {
 		username = v.ID
 	}
-	if _, err := svc.CreateNamespace(c.Ctx(), &namespace, username); err != nil {
-		if err == nsadm.ErrUnauthorized {
+	if _, invalidFields, err := svc.CreateNamespace(c.Ctx(), &namespace, username); err != nil {
+		switch {
+		case err == nsadm.ErrUnauthorized:
 			return c.NoContent(http.StatusForbidden)
+		case err == nsadm.ErrConflict:
+			return c.JSON(http.StatusConflict, invalidFields)
+		default:
+			return err
 		}
-		return err
 	}
 
 	return c.JSON(http.StatusOK, namespace)
@@ -162,7 +167,7 @@ func AddNamespaceUser(c apicontext.Context) error {
 			return c.String(http.StatusNotFound, err.Error())
 		}
 
-		if err == nsadm.ErrDuplicateID {
+		if errors.Is(err, nsadm.ErrDuplicateID) {
 			return c.String(http.StatusConflict, err.Error())
 		}
 

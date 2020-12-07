@@ -11,6 +11,8 @@ import (
 var (
 	ErrDuplicateEmail = errors.New("email address is already in use")
 	ErrRecordNotFound = errors.New("public key not found")
+	ErrDuplicateID    = errors.New("user already member of this namespace")
+	ErrUserNotFound   = errors.New("user not found")
 )
 
 type Store interface {

@@ -18,8 +18,6 @@ import (
 )
 
 var ErrWrongParamsType = errors.New("wrong parameters type")
-var ErrDuplicateID = errors.New("user already member of this namespace")
-var ErrUserNotFound = errors.New("user not found")
 
 type Store struct {
 	db *mongo.Database
@@ -1294,7 +1292,7 @@ func (s *Store) AddNamespaceUser(ctx context.Context, namespace, ID string) (*mo
 		return nil, err
 	}
 	if result.ModifiedCount == 0 {
-		return nil, ErrDuplicateID
+		return nil, store.ErrDuplicateID
 	}
 	return s.GetNamespace(ctx, namespace)
 }
@@ -1305,7 +1303,7 @@ func (s *Store) RemoveNamespaceUser(ctx context.Context, namespace, ID string) (
 		return nil, err
 	}
 	if result.ModifiedCount == 0 {
-		return nil, ErrUserNotFound
+		return nil, store.ErrUserNotFound
 	}
 	return s.GetNamespace(ctx, namespace)
 }

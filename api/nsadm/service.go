@@ -20,10 +20,22 @@ var ErrUserNotFound = errors.New("user not found")
 var ErrNamespaceNotFound = errors.New("namespace not found")
 var ErrDuplicateID = errors.New("user already member of this namespace")
 var ErrUserOwner = errors.New("cannot remove this user")
+var ErrConflict = errors.New("conflict")
+
+const (
+	conflictName   = "This namespace already exists"
+	conflictTenant = "This tenantID already exists"
+)
+
+type InvalidField struct {
+	Name    string
+	Message string
+	Kind    string
+}
 
 type Service interface {
 	ListNamespaces(ctx context.Context, pagination paginator.Query, filterB64 string, export bool) ([]models.Namespace, int, error)
-	CreateNamespace(ctx context.Context, namespace *models.Namespace, ownerUsername string) (*models.Namespace, error)
+	CreateNamespace(ctx context.Context, namespace *models.Namespace, ownerUsername string) ([]InvalidField, *models.Namespace, error)
 	GetNamespace(ctx context.Context, namespace string) (*models.Namespace, error)
 	DeleteNamespace(ctx context.Context, namespace, ownerUsername string) error
 	EditNamespace(ctx context.Context, namespace, name, ownerUsername string) (*models.Namespace, error)
@@ -55,10 +67,12 @@ func (s *service) ListNamespaces(ctx context.Context, pagination paginator.Query
 	return s.store.ListNamespaces(ctx, pagination, filter, export)
 }
 
-func (s *service) CreateNamespace(ctx context.Context, namespace *models.Namespace, ownerUsername string) (*models.Namespace, error) {
+func (s *service) CreateNamespace(ctx context.Context, namespace *models.Namespace, ownerUsername string) ([]InvalidField, *models.Namespace, error) {
+	var invalidFields []InvalidField
+	var checkName, checkTenant bool
 	user, _ := s.store.GetUserByUsername(ctx, ownerUsername)
 	if user == nil {
-		return nil, ErrUnauthorized
+		return nil, nil, ErrUnauthorized
 	}
 	namespace.Owner = user.ID
 	members := []string{user.ID}
@@ -68,7 +82,22 @@ func (s *service) CreateNamespace(ctx context.Context, namespace *models.Namespa
 	if namespace.TenantID == "" {
 		namespace.TenantID = uuid.Must(uuid.NewV4(), nil).String()
 	}
-	return s.store.CreateNamespace(ctx, namespace)
+	ns, err := s.store.GetNamespaceByName(ctx, namespace.Name)
+	if err == nil && ns.Name == namespace.Name {
+		checkName = true
+		invalidFields = append(invalidFields, InvalidField{"name", conflictTenant, "conflict"})
+	}
+
+	ns, err = s.store.GetNamespace(ctx, namespace.Name)
+	if err == nil && ns.TenantID == namespace.TenantID {
+		checkTenant = true
+		invalidFields = append(invalidFields, InvalidField{"tenant", conflictName, "conflict"})
+	}
+	ns, err = s.store.CreateNamespace(ctx, namespace)
+	if checkName || checkTenant {
+		return invalidFields, ns, ErrConflict
+	}
+	return invalidFields, ns, err
 }
 
 func (s *service) GetNamespace(ctx context.Context, namespace string) (*models.Namespace, error) {
@@ -129,7 +158,11 @@ func (s *service) AddNamespaceUser(ctx context.Context, namespace, username, own
 		if OwnerUser, _ := s.store.GetUserByUsername(ctx, ownerUsername); OwnerUser != nil {
 			if ns.Owner == OwnerUser.ID {
 				if user, _ := s.store.GetUserByUsername(ctx, username); user != nil {
-					return s.store.AddNamespaceUser(ctx, namespace, user.ID)
+					ns, err := s.store.AddNamespaceUser(ctx, namespace, user.ID)
+					if err == store.ErrDuplicateID {
+						return ns, ErrDuplicateID
+					}
+					return ns, err
 				}
 				return nil, ErrUserNotFound
 			}
@@ -145,6 +178,9 @@ func (s *service) RemoveNamespaceUser(ctx context.Context, namespace, username, 
 			if ns.Owner == OwnerUser.ID {
 				if user, _ := s.store.GetUserByUsername(ctx, username); user != nil {
 					if ns, err := s.store.RemoveNamespaceUser(ctx, namespace, user.ID); err == nil {
+						if err == store.ErrUserNotFound {
+							return ns, ErrUserNotFound
+						}
 						return ns, err
 					}
 				}
