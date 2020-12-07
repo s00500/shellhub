@@ -26,6 +26,10 @@ export default {
       publicKeyCreating: 'creating public key',
       publicKeyEditing: 'editing public key',
       publicKeyDeleting: 'deleting public key',
+      privateKeyList: 'list of private key',
+      privateKeyCreating: 'creating private key',
+      privateKeyEditing: 'editing private key',
+      privateKeyDeleting: 'deleting private key',
     };
 
     Vue.errors = errors;

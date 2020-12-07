@@ -51,6 +51,10 @@ export default {
           path: '/settings/security',
           hidden: !this.$env.isHosted,
         },
+        {
+          title: 'Private Keys',
+          path: '/settings/private_keys',
+        },
       ],
     };
   },

@@ -87,6 +87,11 @@ const router = new Router({
           name: 'securitySettings',
           component: () => import('./../components/setting/SettingSecurity.vue'),
         },
+        {
+          path: 'private_keys',
+          name: 'privateKeysSettings',
+          component: () => import('./../components/setting/SettingPrivateKeys.vue'),
+        },
       ],
     },
     {
