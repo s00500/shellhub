@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -70,11 +71,12 @@ func DeleteDevice(c apicontext.Context) error {
 	}
 
 	if err := svc.DeleteDevice(c.Ctx(), models.UID(c.Param("uid")), tenant); err != nil {
-		if err == deviceadm.ErrUnauthorized {
+		switch {
+		case errors.Is(err, deviceadm.ErrUnauthorized):
 			return c.NoContent(http.StatusForbidden)
+		default:
+			return err
 		}
-
-		return err
 	}
 
 	return nil
@@ -97,13 +99,13 @@ func RenameDevice(c apicontext.Context) error {
 	svc := deviceadm.NewService(c.Store())
 
 	if err := svc.RenameDevice(c.Ctx(), models.UID(c.Param("uid")), req.Name, tenant); err != nil {
-		if err == deviceadm.ErrUnauthorized {
+		switch {
+		case errors.Is(err, deviceadm.ErrUnauthorized):
 			return c.NoContent(http.StatusForbidden)
+		default:
+			return err
 		}
-
-		return err
 	}
-
 	return nil
 }
 

@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -44,11 +45,12 @@ func GetPublicKey(c apicontext.Context) error {
 
 	pubKey, err := svc.GetPublicKey(c.Ctx(), c.Param("fingerprint"))
 	if err != nil {
-		if err == store.ErrRecordNotFound {
+		switch {
+		case errors.Is(err, store.ErrRecordNotFound):
 			return c.NoContent(http.StatusNotFound)
+		default:
+			return err
 		}
-
-		return err
 	}
 
 	return c.JSON(http.StatusOK, pubKey)

@@ -1,10 +1,10 @@
 package routes
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
-	"errors"
 	"github.com/shellhub-io/shellhub/api/apicontext"
 	"github.com/shellhub-io/shellhub/api/nsadm"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -56,9 +56,9 @@ func CreateNamespace(c apicontext.Context) error {
 	}
 	if _, invalidFields, err := svc.CreateNamespace(c.Ctx(), &namespace, username); err != nil {
 		switch {
-		case err == nsadm.ErrUnauthorized:
+		case errors.Is(err, nsadm.ErrUnauthorized):
 			return c.NoContent(http.StatusForbidden)
-		case err == nsadm.ErrConflict:
+		case errors.Is(err, nsadm.ErrConflict):
 			return c.JSON(http.StatusConflict, invalidFields)
 		default:
 			return err
@@ -94,17 +94,17 @@ func DeleteNamespace(c apicontext.Context) error {
 	}
 
 	if err := svc.DeleteNamespace(c.Ctx(), c.Param("id"), username); err != nil {
-		if err == nsadm.ErrUnauthorized {
+		switch {
+		case errors.Is(err, nsadm.ErrUnauthorized):
 			return c.NoContent(http.StatusForbidden)
-		}
 
-		if err == nsadm.ErrNamespaceNotFound {
+		case errors.Is(err, nsadm.ErrNamespaceNotFound):
 			return c.String(http.StatusNotFound, err.Error())
+
+		default:
+			return nil
 		}
-
-		return err
 	}
-
 	return nil
 }
 
@@ -126,14 +126,14 @@ func EditNamespace(c apicontext.Context) error {
 
 	namespace, err := svc.EditNamespace(c.Ctx(), c.Param("id"), req.Name, username)
 	if err != nil {
-		if err == nsadm.ErrUnauthorized {
+		switch {
+		case errors.Is(err, nsadm.ErrUnauthorized):
 			return c.NoContent(http.StatusForbidden)
-		}
-		if err == nsadm.ErrNamespaceNotFound {
+		case errors.Is(err, nsadm.ErrNamespaceNotFound):
 			return c.String(http.StatusNotFound, err.Error())
+		default:
+			return err
 		}
-
-		return err
 	}
 
 	return c.JSON(http.StatusOK, namespace)
@@ -157,21 +157,18 @@ func AddNamespaceUser(c apicontext.Context) error {
 
 	namespace, err := svc.AddNamespaceUser(c.Ctx(), c.Param("id"), req.Username, ownerUsername)
 	if err != nil {
-		if err == nsadm.ErrUnauthorized {
+		switch {
+		case errors.Is(err, nsadm.ErrUnauthorized):
 			return c.NoContent(http.StatusForbidden)
-		}
-		if err == nsadm.ErrUserNotFound {
+		case errors.Is(err, nsadm.ErrUserNotFound):
 			return c.String(http.StatusNotFound, err.Error())
-		}
-		if err == nsadm.ErrNamespaceNotFound {
+		case errors.Is(err, nsadm.ErrNamespaceNotFound):
 			return c.String(http.StatusNotFound, err.Error())
-		}
-
-		if errors.Is(err, nsadm.ErrDuplicateID) {
+		case errors.Is(err, nsadm.ErrDuplicateID):
 			return c.String(http.StatusConflict, err.Error())
+		default:
+			return err
 		}
-
-		return err
 	}
 
 	return c.JSON(http.StatusOK, namespace)
@@ -193,23 +190,19 @@ func RemoveNamespaceUser(c apicontext.Context) error {
 	}
 	namespace, err := svc.RemoveNamespaceUser(c.Ctx(), c.Param("id"), req.Username, ownerUsername)
 	if err != nil {
-		if err == nsadm.ErrUnauthorized {
+		switch {
+		case errors.Is(err, nsadm.ErrUnauthorized):
 			return c.NoContent(http.StatusForbidden)
-		}
-		if err == nsadm.ErrUserNotFound {
+		case errors.Is(err, nsadm.ErrUserNotFound):
 			return c.String(http.StatusNotFound, err.Error())
-		}
-		if err == nsadm.ErrNamespaceNotFound {
+		case errors.Is(err, nsadm.ErrNamespaceNotFound):
 			return c.String(http.StatusNotFound, err.Error())
-		}
-
-		if err == nsadm.ErrDuplicateID {
+		case errors.Is(err, nsadm.ErrDuplicateID):
 			return c.String(http.StatusConflict, err.Error())
+		default:
+			return err
 		}
-
-		return err
 	}
-
 	return c.JSON(http.StatusOK, namespace)
 }
 
