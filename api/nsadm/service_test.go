@@ -55,12 +55,16 @@ func TestCreateNamespace(t *testing.T) {
 
 	user := &models.User{Name: "user1", Username: "hash1", ID: "hash1"}
 
-	namespace := &models.Namespace{Name: "group1", Owner: "hash1"}
+	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713"}
 
 	mock.On("GetUserByUsername", ctx, user.Username).Return(user, nil).Once()
+	mock.On("GetNamespaceByName", ctx, namespace.Name).Return(nil, nil).Once()
+	mock.On("GetNamespace", ctx, namespace.TenantID).Return(nil, nil).Once()
 	mock.On("CreateNamespace", ctx, namespace).Return(namespace, nil).Once()
 
-	returnedNamespace, err := s.CreateNamespace(ctx, namespace, namespace.Owner)
+	_, returnedNamespace, err := s.CreateNamespace(ctx, namespace, namespace.Owner)
+	_ = returnedNamespace
+	_ = err
 	assert.NoError(t, err)
 	assert.Equal(t, namespace, returnedNamespace)
 	mock.AssertExpectations(t)

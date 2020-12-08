@@ -82,21 +82,25 @@ func (s *service) CreateNamespace(ctx context.Context, namespace *models.Namespa
 	if namespace.TenantID == "" {
 		namespace.TenantID = uuid.Must(uuid.NewV4(), nil).String()
 	}
-	ns, err := s.store.GetNamespaceByName(ctx, namespace.Name)
-	if err == nil && ns.Name == namespace.Name {
-		checkName = true
-		invalidFields = append(invalidFields, InvalidField{"name", conflictName, "conflict"})
+	if ns, _ := s.store.GetNamespaceByName(ctx, namespace.Name); ns != nil {
+		if ns.Name == namespace.Name {
+			checkName = true
+			invalidFields = append(invalidFields, InvalidField{"name", conflictName, "conflict"})
+		}
 	}
 
-	ns, err = s.store.GetNamespace(ctx, namespace.Name)
-	if err == nil && ns.TenantID == namespace.TenantID {
-		checkTenant = true
-		invalidFields = append(invalidFields, InvalidField{"tenant", conflictTenant, "conflict"})
+	if ns, _ := s.store.GetNamespace(ctx, namespace.TenantID); ns != nil {
+		if ns.TenantID == namespace.TenantID {
+			checkTenant = true
+			invalidFields = append(invalidFields, InvalidField{"tenant", conflictTenant, "conflict"})
+		}
 	}
-	ns, err = s.store.CreateNamespace(ctx, namespace)
+
 	if checkName || checkTenant {
-		return invalidFields, ns, ErrConflict
+		return invalidFields, nil, ErrConflict
 	}
+
+	ns, err := s.store.CreateNamespace(ctx, namespace)
 	return invalidFields, ns, err
 }
 
