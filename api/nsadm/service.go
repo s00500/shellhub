@@ -18,7 +18,7 @@ import (
 var ErrUnauthorized = errors.New("unauthorized")
 var ErrUserNotFound = errors.New("user not found")
 var ErrNamespaceNotFound = errors.New("namespace not found")
-var ErrDuplicateID = errors.New("user already member of this namespace")
+var ErrDuplicateID = errors.New("The user is already member of this namespace")
 var ErrUserOwner = errors.New("cannot remove this user")
 var ErrConflict = errors.New("conflict")
 
@@ -85,13 +85,13 @@ func (s *service) CreateNamespace(ctx context.Context, namespace *models.Namespa
 	ns, err := s.store.GetNamespaceByName(ctx, namespace.Name)
 	if err == nil && ns.Name == namespace.Name {
 		checkName = true
-		invalidFields = append(invalidFields, InvalidField{"name", conflictTenant, "conflict"})
+		invalidFields = append(invalidFields, InvalidField{"name", conflictName, "conflict"})
 	}
 
 	ns, err = s.store.GetNamespace(ctx, namespace.Name)
 	if err == nil && ns.TenantID == namespace.TenantID {
 		checkTenant = true
-		invalidFields = append(invalidFields, InvalidField{"tenant", conflictName, "conflict"})
+		invalidFields = append(invalidFields, InvalidField{"tenant", conflictTenant, "conflict"})
 	}
 	ns, err = s.store.CreateNamespace(ctx, namespace)
 	if checkName || checkTenant {

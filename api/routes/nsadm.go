@@ -54,7 +54,7 @@ func CreateNamespace(c apicontext.Context) error {
 	if v := c.Username(); v != nil {
 		username = v.ID
 	}
-	if _, invalidFields, err := svc.CreateNamespace(c.Ctx(), &namespace, username); err != nil {
+	if invalidFields, _, err := svc.CreateNamespace(c.Ctx(), &namespace, username); err != nil {
 		switch {
 		case errors.Is(err, nsadm.ErrUnauthorized):
 			return c.NoContent(http.StatusForbidden)
