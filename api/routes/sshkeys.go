@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/labstack/echo"
 	"github.com/shellhub-io/shellhub/api/apicontext"
 	"github.com/shellhub-io/shellhub/api/sshkeys"
 	"github.com/shellhub-io/shellhub/api/store"
@@ -47,7 +48,7 @@ func GetPublicKey(c apicontext.Context) error {
 	if err != nil {
 		switch {
 		case errors.Is(err, store.ErrRecordNotFound):
-			return c.NoContent(http.StatusNotFound)
+			return echo.ErrNotFound
 		default:
 			return err
 		}

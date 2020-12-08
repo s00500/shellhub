@@ -88,9 +88,9 @@ func FinishSession(c apicontext.Context) error {
 }
 
 func RecordSession(c apicontext.Context) error {
-	return c.JSON(http.StatusOK, nil)
+	return c.NoContent(http.StatusOK)
 }
 
 func PlaySession(c apicontext.Context) error {
-	return c.JSON(http.StatusOK, nil)
+	return c.NoContent(http.StatusOK)
 }

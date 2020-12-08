@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/labstack/echo"
 	"github.com/shellhub-io/shellhub/api/apicontext"
 	"github.com/shellhub-io/shellhub/api/nsadm"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -57,7 +58,7 @@ func CreateNamespace(c apicontext.Context) error {
 	if invalidFields, _, err := svc.CreateNamespace(c.Ctx(), &namespace, username); err != nil {
 		switch {
 		case errors.Is(err, nsadm.ErrUnauthorized):
-			return c.NoContent(http.StatusForbidden)
+			return echo.ErrForbidden
 		case errors.Is(err, nsadm.ErrConflict):
 			return c.JSON(http.StatusConflict, invalidFields)
 		default:
@@ -96,10 +97,10 @@ func DeleteNamespace(c apicontext.Context) error {
 	if err := svc.DeleteNamespace(c.Ctx(), c.Param("id"), username); err != nil {
 		switch {
 		case errors.Is(err, nsadm.ErrUnauthorized):
-			return c.NoContent(http.StatusForbidden)
+			return echo.ErrForbidden
 
 		case errors.Is(err, nsadm.ErrNamespaceNotFound):
-			return c.String(http.StatusNotFound, err.Error())
+			return echo.NewHTTPError(http.StatusNotFound, err.Error())
 
 		default:
 			return nil
@@ -128,9 +129,9 @@ func EditNamespace(c apicontext.Context) error {
 	if err != nil {
 		switch {
 		case errors.Is(err, nsadm.ErrUnauthorized):
-			return c.NoContent(http.StatusForbidden)
+			return echo.ErrForbidden
 		case errors.Is(err, nsadm.ErrNamespaceNotFound):
-			return c.String(http.StatusNotFound, err.Error())
+			return echo.NewHTTPError(http.StatusNotFound, err.Error())
 		default:
 			return err
 		}
@@ -161,11 +162,11 @@ func AddNamespaceUser(c apicontext.Context) error {
 		case errors.Is(err, nsadm.ErrUnauthorized):
 			return c.NoContent(http.StatusForbidden)
 		case errors.Is(err, nsadm.ErrUserNotFound):
-			return c.String(http.StatusNotFound, err.Error())
+			return echo.NewHTTPError(http.StatusNotFound, err.Error())
 		case errors.Is(err, nsadm.ErrNamespaceNotFound):
-			return c.String(http.StatusNotFound, err.Error())
+			return echo.NewHTTPError(http.StatusNotFound, err.Error())
 		case errors.Is(err, nsadm.ErrDuplicateID):
-			return c.String(http.StatusConflict, err.Error())
+			return echo.NewHTTPError(http.StatusConflict, err.Error())
 		default:
 			return err
 		}
@@ -192,13 +193,13 @@ func RemoveNamespaceUser(c apicontext.Context) error {
 	if err != nil {
 		switch {
 		case errors.Is(err, nsadm.ErrUnauthorized):
-			return c.NoContent(http.StatusForbidden)
+			return echo.ErrForbidden
 		case errors.Is(err, nsadm.ErrUserNotFound):
-			return c.String(http.StatusNotFound, err.Error())
+			return echo.NewHTTPError(http.StatusNotFound, err.Error())
 		case errors.Is(err, nsadm.ErrNamespaceNotFound):
-			return c.String(http.StatusNotFound, err.Error())
+			return echo.NewHTTPError(http.StatusNotFound, err.Error())
 		case errors.Is(err, nsadm.ErrDuplicateID):
-			return c.String(http.StatusConflict, err.Error())
+			return echo.NewHTTPError(http.StatusConflict, err.Error())
 		default:
 			return err
 		}

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/labstack/echo"
 	"github.com/shellhub-io/shellhub/api/apicontext"
 	"github.com/shellhub-io/shellhub/api/deviceadm"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
@@ -73,7 +74,7 @@ func DeleteDevice(c apicontext.Context) error {
 	if err := svc.DeleteDevice(c.Ctx(), models.UID(c.Param("uid")), tenant); err != nil {
 		switch {
 		case errors.Is(err, deviceadm.ErrUnauthorized):
-			return c.NoContent(http.StatusForbidden)
+			return echo.ErrForbidden
 		default:
 			return err
 		}
@@ -101,7 +102,7 @@ func RenameDevice(c apicontext.Context) error {
 	if err := svc.RenameDevice(c.Ctx(), models.UID(c.Param("uid")), req.Name, tenant); err != nil {
 		switch {
 		case errors.Is(err, deviceadm.ErrUnauthorized):
-			return c.NoContent(http.StatusForbidden)
+			return echo.ErrForbidden
 		default:
 			return err
 		}

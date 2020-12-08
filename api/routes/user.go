@@ -1,10 +1,11 @@
 package routes
 
 import (
-	"net/http"
-
 	"crypto/sha256"
 	"encoding/hex"
+	"net/http"
+
+	"github.com/labstack/echo"
 	"github.com/shellhub-io/shellhub/api/apicontext"
 	"github.com/shellhub-io/shellhub/api/user"
 )
@@ -44,7 +45,7 @@ func UpdateUser(c apicontext.Context) error {
 	if invalidFields, err := svc.UpdateDataUser(c.Ctx(), req.Username, req.Email, req.CurrentPassword, req.NewPassword, ID); err != nil {
 		switch {
 		case err == user.ErrUnauthorized:
-			return c.NoContent(http.StatusForbidden)
+			return echo.ErrUnauthorized
 		case err == user.ErrConflict:
 			return c.JSON(http.StatusConflict, invalidFields)
 		default:
@@ -52,5 +53,5 @@ func UpdateUser(c apicontext.Context) error {
 		}
 	}
 
-	return c.JSON(http.StatusOK, nil)
+	return c.NoContent(http.StatusOK)
 }
