@@ -116,7 +116,7 @@ export default {
           });
         } else if (error.response.status === 409) {
           this.$refs.newuser.setErrors({
-            username: 'The username has already been added to namespace.',
+            username: error.response.data.message,
           });
         } else {
           this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.namespaceNewMember);

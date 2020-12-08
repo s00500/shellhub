@@ -17,6 +17,7 @@
             <v-card-text class="caption mb-0">
               <ValidationProvider
                 v-slot="{ errors }"
+                vid="namespace"
                 name="namespace"
                 rules="required|rfc1123"
               >
@@ -131,8 +132,23 @@ export default {
         this.namespaceName = '';
         this.$refs.obs.reset();
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.namespaceCreating);
-      } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.namespaceCreating);
+      } catch (error) {
+        if (error.response.status === 409) {
+          error.response.data.forEach((item) => {
+            if (item.Name === 'name') {
+              this.$refs.obs.setErrors({
+                namespace: item.Message,
+              });
+            }
+            if (item.Name === 'tenant') {
+              this.$refs.obs.setErrors({
+                namespace: item.Message,
+              });
+            }
+          });
+        } else {
+          this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.namespaceCreating);
+        }
       }
     },
   },
