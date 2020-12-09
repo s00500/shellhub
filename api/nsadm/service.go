@@ -20,7 +20,7 @@ var ErrUserNotFound = errors.New("user not found")
 var ErrNamespaceNotFound = errors.New("namespace not found")
 var ErrDuplicateID = errors.New("The user is already member of this namespace")
 var ErrUserOwner = errors.New("cannot remove this user")
-var ErrConflict = errors.New("conflict")
+var ErrConflict = errors.New("A namespace with this name already exists")
 
 const (
 	conflictName   = "This namespace already exists"
