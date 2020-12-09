@@ -138,13 +138,14 @@ func (s *service) ListMembers(ctx context.Context, namespace string) ([]models.M
 }
 
 func (s *service) EditNamespace(ctx context.Context, namespace, name, ownerUsername string) (*models.Namespace, error) {
-	ns, _ := s.store.GetNamespace(ctx, namespace)
-	if ns != nil {
-		user, _ := s.store.GetUserByUsername(ctx, ownerUsername)
-		if user != nil {
+	if ns, _ := s.store.GetNamespace(ctx, namespace); ns != nil {
+		if user, _ := s.store.GetUserByUsername(ctx, ownerUsername); user != nil {
 			validate := validator.New()
 			name = strings.ToLower(name)
-			if ns.Name != name && ns.Owner == user.ID {
+			if anotherNamespace, _ := s.store.GetNamespaceByName(ctx, name); anotherNamespace != nil {
+				return nil, ErrConflict
+			}
+			if ns.Owner == user.ID {
 				ns.Name = name
 				if err := validate.Struct(ns); err == nil {
 					return s.store.EditNamespace(ctx, namespace, name)

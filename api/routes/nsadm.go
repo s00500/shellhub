@@ -130,6 +130,8 @@ func EditNamespace(c apicontext.Context) error {
 		switch {
 		case errors.Is(err, nsadm.ErrUnauthorized):
 			return echo.ErrForbidden
+		case errors.Is(err, nsadm.ErrConflict):
+			return echo.NewHTTPError(http.StatusConflict, err.Error())
 		case errors.Is(err, nsadm.ErrNamespaceNotFound):
 			return echo.NewHTTPError(http.StatusNotFound, err.Error())
 		default:
