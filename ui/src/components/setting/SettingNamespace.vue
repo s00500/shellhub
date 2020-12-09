@@ -77,7 +77,7 @@
               </h3>
 
               <ValidationObserver
-                ref="data"
+                ref="obs"
                 v-slot="{ passes }"
               >
                 <div>
@@ -309,8 +309,14 @@ export default {
         await this.$store.dispatch('namespaces/put', { id: this.tenant, name: this.name });
         await this.$store.dispatch('namespaces/get', this.tenant);
         this.$store.dispatch('snackbar/showSnackbarSuccessAction', this.$success.namespaceEdit);
-      } catch {
-        this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.namespaceEdit);
+      } catch (error) {
+        if (error.response.status === 409) {
+          this.$refs.obs.setErrors({
+            name: error.response.data.message,
+          });
+        } else {
+          this.$store.dispatch('snackbar/showSnackbarErrorAction', this.$errors.namespaceEdit);
+        }
       }
     },
 
