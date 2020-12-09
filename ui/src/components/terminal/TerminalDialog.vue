@@ -11,6 +11,7 @@
       </template>
       <span>Terminal</span>
     </v-tooltip>
+
     <v-dialog
       v-model="show"
       max-width="1024px"
@@ -34,45 +35,99 @@
 
         <v-card
           v-if="showLoginForm"
-          class="ma-0 pa-6"
+          class="ma-0 px-6 py-4"
           outlined
         >
-          <v-form
-            ref="form"
-            v-model="valid"
-            lazy-validation
-            @submit.prevent="connect()"
-          >
-            <v-text-field
-              ref="username"
-              v-model="username"
-              data-test="username"
-              label="Username"
-              autofocus
-              :rules="[rules.required]"
-              :validate-on-blur="true"
-            />
-            <v-text-field
-              v-model="passwd"
-              data-test="passwd"
-              label="Password"
-              type="password"
-              :rules="[rules.required]"
-              :validate-on-blur="true"
-            />
-            <v-card-actions>
-              <v-spacer />
-              <v-btn
-                type="submit"
-                color="primary"
-                class="mt-4"
-              >
-                Connect
-              </v-btn>
-            </v-card-actions>
-          </v-form>
-        </v-card>
+          <v-tabs>
+            <v-tab>Password</v-tab>
+            <v-tab>Private Key</v-tab>
 
+            <v-tab-item>
+              <v-card
+                flat
+              >
+                <v-form
+                  ref="form"
+                  v-model="valid"
+                  lazy-validation
+                  @submit.prevent="connectWithPassword()"
+                >
+                  <v-text-field
+                    ref="username"
+                    v-model="username"
+                    data-test="username"
+                    label="Username"
+                    autofocus
+                    :rules="[rules.required]"
+                    :validate-on-blur="true"
+                  />
+
+                  <v-text-field
+                    v-model="passwd"
+                    data-test="passwd"
+                    label="Password"
+                    type="password"
+                    :rules="[rules.required]"
+                    :validate-on-blur="true"
+                  />
+
+                  <v-card-actions>
+                    <v-spacer />
+                    <v-btn
+                      type="submit"
+                      color="primary"
+                      class="mt-4"
+                    >
+                      Connect
+                    </v-btn>
+                  </v-card-actions>
+                </v-form>
+              </v-card>
+            </v-tab-item>
+
+            <v-tab-item>
+              <v-card
+                flat
+              >
+                <v-form
+                  ref="form"
+                  v-model="valid"
+                  lazy-validation
+                  @submit.prevent="connectWithPrivateKey()"
+                >
+                  <v-text-field
+                    ref="username"
+                    v-model="username"
+                    data-test="username"
+                    label="Username"
+                    autofocus
+                    :rules="[rules.required]"
+                    :validate-on-blur="true"
+                  />
+
+                  <v-select
+                    v-model="privateKey"
+                    :items="getListPrivateKeys"
+                    item-text="name"
+                    item-value="data"
+                    label="Private Keys"
+                  />
+
+                  <v-card-actions>
+                    <v-spacer />
+                    <v-btn
+                      type="submit"
+                      color="primary"
+                      class="mt-4"
+                    >
+                      Connect
+                    </v-btn>
+                  </v-card-actions>
+                </v-form>
+              </v-card>
+            </v-tab-item>
+          </v-tabs>
+        </v-card>
         <div ref="terminal" />
       </v-card>
     </v-dialog>
@@ -86,6 +141,8 @@ import { AttachAddon } from 'xterm-addon-attach';
 import { FitAddon } from 'xterm-addon-fit';
 
 import 'xterm/css/xterm.css';
+
+import { parsePrivateKey } from '@/sshpk';
 
 export default {
   name: 'TerminalDialog',
@@ -103,6 +160,7 @@ export default {
       passwd: '',
       showLoginForm: true,
       valid: true,
+      privateKey: '',
       rules: {
         required: (value) => !!value || 'Required',
       },
@@ -122,6 +180,10 @@ export default {
           this.$store.dispatch('modals/toggleTerminal', '');
         }
       },
+    },
+
+    getListPrivateKeys() {
+      return this.$store.getters['privatekeys/list'];
     },
   },
 
@@ -163,9 +225,42 @@ export default {
       this.$store.dispatch('modals/toggleTerminal', '');
     },
 
-    connect() {
-      let protocolConnectionURL = '';
+    connectWithPassword() {
+      const params = Object.entries({
+        user: `${this.username}@${this.$props.uid}`,
+        passwd: encodeURIComponent(this.passwd),
+        cols: this.xterm.cols,
+        rows: this.xterm.rows,
+      })
+        .map(([k, v]) => `${k}=${v}`)
+        .join('&');
 
+      this.connect(params);
+    },
+
+    connectWithPrivateKey() {
+      const key = parsePrivateKey(this.privateKey);
+      const sign = key.createSign('sha1');
+
+      sign.update(this.username);
+
+      const signature = sign.sign();
+      const fingerprint = key.fingerprint('md5');
+
+      const params = Object.entries({
+        user: `${this.username}@${this.$props.uid}`,
+        signature: encodeURIComponent(signature),
+        fingerprint,
+        cols: this.xterm.cols,
+        rows: this.xterm.rows,
+      })
+        .map(([k, v]) => `${k}=${v}`)
+        .join('&');
+
+      this.connect(params);
+    },
+
+    connect(params) {
       if (!this.$refs.form.validate(true)) {
         return;
       }
@@ -180,14 +275,7 @@ export default {
       this.fitAddon.fit();
       this.xterm.focus();
 
-      const params = Object.entries({
-        user: `${this.username}@${this.$props.uid}`,
-        passwd: encodeURIComponent(this.passwd),
-        cols: this.xterm.cols,
-        rows: this.xterm.rows,
-      })
-        .map(([k, v]) => `${k}=${v}`)
-        .join('&');
+      let protocolConnectionURL = '';
 
       if (window.location.protocol === 'http:') {
         protocolConnectionURL = 'ws';
