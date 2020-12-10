@@ -22,6 +22,6 @@ describe('NamespaceAdd', () => {
   });
   it('Compare data with default value', () => {
     expect(wrapper.vm.dialog).toEqual(false);
-    expect(wrapper.vm.namespace).toEqual('');
+    expect(wrapper.vm.namespaceName).toEqual('');
   });
 });
