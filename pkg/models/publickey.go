@@ -7,6 +7,7 @@ type PublicKeyFields struct {
 }
 
 type PublicKey struct {
+	ID              string    `json:"id,omitempty" bson:"_id,omitempty"`
 	Data            []byte    `json:"data"`
 	Fingerprint     string    `json:"fingerprint"`
 	CreatedAt       time.Time `json:"created_at" bson:"created_at"`

@@ -13,10 +13,10 @@ import (
 
 const (
 	GetPublicKeysURL    = "/sshkeys/public_keys"
-	GetPublicKeyURL     = "/sshkeys/public_keys/:fingerprint"
+	GetPublicKeyURL     = "/sshkeys/public_keys/:id"
 	CreatePublicKeyURL  = "/sshkeys/public_keys"
-	UpdatePublicKeyURL  = "/sshkeys/public_keys/:fingerprint"
-	DeletePublicKeyURL  = "/sshkeys/public_keys/:fingerprint"
+	UpdatePublicKeyURL  = "/sshkeys/public_keys/:id"
+	DeletePublicKeyURL  = "/sshkeys/public_keys/:id"
 	CreatePrivateKeyURL = "/sshkeys/private_keys"
 )
 
@@ -42,7 +42,7 @@ func GetPublicKeys(c apicontext.Context) error {
 func GetPublicKey(c apicontext.Context) error {
 	svc := sshkeys.NewService(c.Store())
 
-	pubKey, err := svc.GetPublicKey(c.Ctx(), c.Param("fingerprint"))
+	pubKey, err := svc.GetPublicKey(c.Ctx(), c.Param("id"))
 	if err != nil {
 		if err == store.ErrRecordNotFound {
 			return c.NoContent(http.StatusNotFound)
@@ -85,7 +85,7 @@ func UpdatePublicKey(c apicontext.Context) error {
 		return err
 	}
 
-	key, err := svc.UpdatePublicKey(c.Ctx(), c.Param("fingerprint"), &params)
+	key, err := svc.UpdatePublicKey(c.Ctx(), c.Param("id"), &params)
 	if err != nil {
 		return err
 	}
@@ -96,7 +96,7 @@ func UpdatePublicKey(c apicontext.Context) error {
 func DeletePublicKey(c apicontext.Context) error {
 	svc := sshkeys.NewService(c.Store())
 
-	if err := svc.DeletePublicKey(c.Ctx(), c.Param("fingerprint")); err != nil {
+	if err := svc.DeletePublicKey(c.Ctx(), c.Param("id")); err != nil {
 		return err
 	}
 

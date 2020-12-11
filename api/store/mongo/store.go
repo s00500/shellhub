@@ -1103,9 +1103,10 @@ func (s *Store) SaveLicense(ctx context.Context, license *models.License) error 
 	return err
 }
 
-func (s *Store) GetPublicKey(ctx context.Context, fingerprint string) (*models.PublicKey, error) {
+func (s *Store) GetPublicKey(ctx context.Context, ID string) (*models.PublicKey, error) {
 	pubKey := new(models.PublicKey)
-	if err := s.db.Collection("public_keys").FindOne(ctx, bson.M{"fingerprint": fingerprint}).Decode(&pubKey); err != nil {
+	objID, _ := primitive.ObjectIDFromHex(ID)
+	if err := s.db.Collection("public_keys").FindOne(ctx, bson.M{"_id": objID}).Decode(&pubKey); err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, store.ErrRecordNotFound
 		}
@@ -1167,16 +1168,17 @@ func (s *Store) CreatePublicKey(ctx context.Context, key *models.PublicKey) erro
 	return err
 }
 
-func (s *Store) UpdatePublicKey(ctx context.Context, fingerprint string, key *models.PublicKeyUpdate) (*models.PublicKey, error) {
-	if _, err := s.db.Collection("public_keys").UpdateOne(ctx, bson.M{"fingerprint": fingerprint}, bson.M{"$set": key}); err != nil {
+func (s *Store) UpdatePublicKey(ctx context.Context, ID string, key *models.PublicKeyUpdate) (*models.PublicKey, error) {
+	objID, _ := primitive.ObjectIDFromHex(ID)
+	if _, err := s.db.Collection("public_keys").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": key}); err != nil {
 		return nil, err
 	}
-
-	return s.GetPublicKey(ctx, fingerprint)
+	return s.GetPublicKey(ctx, ID)
 }
 
-func (s *Store) DeletePublicKey(ctx context.Context, fingerprint string) error {
-	_, err := s.db.Collection("public_keys").DeleteOne(ctx, bson.M{"fingerprint": fingerprint})
+func (s *Store) DeletePublicKey(ctx context.Context, ID string) error {
+	objID, _ := primitive.ObjectIDFromHex(ID)
+	_, err := s.db.Collection("public_keys").DeleteOne(ctx, bson.M{"_id": objID})
 	return err
 }
 
