@@ -85,6 +85,20 @@ func (s *service) DeleteNamespace(ctx context.Context, namespace, ownerUsername 
 	return ErrNamespaceNotFound
 }
 
+func (s *service) ListMembers(ctx context.Context, namespace string) ([]string, error) {
+	ns, _ := s.store.GetNamespace(ctx, namespace)
+	if ns != nil {
+		member_names := []string{}
+		for _, memberId := range ns.Members {
+			if user, err := s.store.GetUserByID(ctx, memberId); err == nil {
+				member_names = append(member_names, user.Username)
+			}
+		}
+		return member_names, nil
+	}
+	return []string{}, ErrNamespaceNotFound
+}
+
 func (s *service) EditNamespace(ctx context.Context, namespace, name, ownerUsername string) (*models.Namespace, error) {
 	ns, _ := s.store.GetNamespace(ctx, namespace)
 	if ns != nil {
