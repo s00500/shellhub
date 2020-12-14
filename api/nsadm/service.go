@@ -11,6 +11,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"gopkg.in/go-playground/validator.v9"
 )
 
@@ -28,7 +29,7 @@ type Service interface {
 	EditNamespace(ctx context.Context, namespace, name, ownerUsername string) (*models.Namespace, error)
 	AddNamespaceUser(ctx context.Context, namespace, username, ownerUsername string) (*models.Namespace, error)
 	RemoveNamespaceUser(ctx context.Context, namespace, username, ownerUsername string) (*models.Namespace, error)
-	ListMembers(ctx context.Context, namespace string) ([]string, error)
+	ListMembers(ctx context.Context, namespace string) ([]models.Member, error)
 	UpdateDataUserSecurity(ctx context.Context, status bool, tenant string) error
 	GetDataUserSecurity(ctx context.Context, tenant string) (bool, error)
 }
@@ -60,7 +61,8 @@ func (s *service) CreateNamespace(ctx context.Context, namespace *models.Namespa
 		return nil, ErrUnauthorized
 	}
 	namespace.Owner = user.ID
-	namespace.Members = []string{user.ID}
+	members := []string{user.ID}
+	namespace.Members = &members
 	settings := &models.NamespaceSettings{SessionRecord: true}
 	namespace.Settings = settings
 	if namespace.TenantID == "" {
@@ -87,18 +89,19 @@ func (s *service) DeleteNamespace(ctx context.Context, namespace, ownerUsername 
 	return ErrNamespaceNotFound
 }
 
-func (s *service) ListMembers(ctx context.Context, namespace string) ([]string, error) {
+func (s *service) ListMembers(ctx context.Context, namespace string) ([]models.Member, error) {
 	ns, _ := s.store.GetNamespace(ctx, namespace)
 	if ns != nil {
-		memberNames := []string{}
-		for _, memberID := range ns.Members {
-			if user, err := s.store.GetUserByID(ctx, memberID); err == nil {
-				memberNames = append(memberNames, user.Username)
+		members := []models.Member{}
+		for _, memberID := range ns.Members.(primitive.A) {
+			if user, err := s.store.GetUserByID(ctx, memberID.(string)); err == nil {
+				member := models.Member{ID: memberID.(string), Name: user.Username}
+				members = append(members, member)
 			}
 		}
-		return memberNames, nil
+		return members, nil
 	}
-	return []string{}, ErrNamespaceNotFound
+	return []models.Member{}, ErrNamespaceNotFound
 }
 
 func (s *service) EditNamespace(ctx context.Context, namespace, name, ownerUsername string) (*models.Namespace, error) {
