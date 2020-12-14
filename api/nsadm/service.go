@@ -51,7 +51,6 @@ func (s *service) ListNamespaces(ctx context.Context, pagination paginator.Query
 	if err := json.Unmarshal([]byte(raw), &filter); len(raw) > 0 && err != nil {
 		return nil, 0, err
 	}
-
 	return s.store.ListNamespaces(ctx, pagination, filter, export)
 }
 
@@ -91,13 +90,13 @@ func (s *service) DeleteNamespace(ctx context.Context, namespace, ownerUsername 
 func (s *service) ListMembers(ctx context.Context, namespace string) ([]string, error) {
 	ns, _ := s.store.GetNamespace(ctx, namespace)
 	if ns != nil {
-		member_names := []string{}
-		for _, memberId := range ns.Members {
-			if user, err := s.store.GetUserByID(ctx, memberId); err == nil {
-				member_names = append(member_names, user.Username)
+		memberNames := []string{}
+		for _, memberID := range ns.Members {
+			if user, err := s.store.GetUserByID(ctx, memberID); err == nil {
+				memberNames = append(memberNames, user.Username)
 			}
 		}
-		return member_names, nil
+		return memberNames, nil
 	}
 	return []string{}, ErrNamespaceNotFound
 }
